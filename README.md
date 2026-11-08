@@ -1,0 +1,68 @@
+# NextCup — Coffee Chat Tracker
+
+A web app for students to prep for coffee chats, log what they learned in two minutes, and never miss the thank-you or follow-up. Built from our Stitch designs (Warm Editorial Professional).
+
+## What works today
+
+| Screen | What it does |
+|---|---|
+| Landing | Intro + "Launch workspace" |
+| Sign up / profile setup | Name, headline, school, target roles, resume highlights |
+| Dashboard | Next chat (join link, AI brief, add to calendar), chats waiting for a debrief, follow-ups due this week, network funnel |
+| Contacts | Search, relationship filters, sort, pagination, stats |
+| Add / edit contact | Role types, where you met, goals, research notes, "Save & Generate AI Prep" |
+| Contact profile | Meeting history timeline, notes log, AI follow-up ideas, AI prep brief, prep checklist |
+| Calendar | Upcoming / past, type filters, month view, AI prep, post-meeting notes, delete with confirm |
+| Schedule a chat | Pick contact, format (video / in-person / phone), date, time, duration, topic, .ics invite |
+| Profile | Goals, wishlist, **30s / 1 min / 2 min pitches** with AI refine, resume → skill tags, AI tone, follow-up cadence, export / delete data, theme |
+| **Log a chat** (button everywhere) | Rough notes → AI tidies into headline, takeaways, next step → auto-plans a thank-you (next day) and a check-in (N weeks later) |
+
+AI features: prep brief, prep chat assistant, tidy notes, thank-you / follow-up drafts, follow-up ideas, pitch refine, skill extraction. All live in `src/lib/ai.ts`.
+
+## Run it locally
+
+```bash
+npm install
+npm run dev        # http://localhost:5173
+```
+
+Data is saved in your browser (localStorage) when running locally. AI buttons show "not connected" until you set up an AI endpoint (below).
+
+## Project layout
+
+```
+src/
+  App.tsx              routes (hash-based), top nav, bottom tab bar on mobile
+  index.css            design tokens (light + dark) and Tailwind v4 theme
+  lib/
+    types.ts           data model: Profile, Contact, ChatEvent, Note
+    store.tsx          storage (Claude private store | localStorage) + React hooks
+    ai.ts              every AI prompt + provider switch
+    derive.ts          upcoming chats, due follow-ups, funnel numbers
+    date.ts, files.ts  date helpers, .ics invites and file export
+  components/          ui kit, logo, Log-a-chat modal, AI prep assistant, draft modal
+  pages/               one file per screen
+api/ai.ts              Vercel function that calls the Claude API with your key
+scripts/build-artifact.mjs   builds a single HTML file (used for the Claude-hosted preview)
+```
+
+## Data model (maps 1:1 to database tables later)
+
+- **profile** — one per user: name, headline, school, target roles, wishlist, pitches, skills, tone, default duration, follow-up cadence
+- **contacts** — name, title, company, roleTypes[], metVia, metAt, goals[], notes, lastContact, checklist, aiPrep, aiFollowUps
+- **events** — contactId, kind (`coffee` | `thankyou` | `followup`), start, durationMin, format, location/link, topic, status (`planned` | `done`), draft
+- **notes** — contactId, eventId?, date, headline, body, nextStep, kind (`debrief` | `prep` | `intro` | `note`), pinned
+
+## Deploy your own copy (Vercel)
+
+1. Push this folder to GitHub, import it in Vercel (framework: Vite).
+2. Environment variables: `ANTHROPIC_API_KEY` (from console.anthropic.com) and `VITE_AI_ENDPOINT=/api/ai`.
+3. Deploy. AI features now run through `api/ai.ts`; the key never reaches the browser.
+
+To share data across devices, add Supabase: create the four tables above with a `user_id` column and row-level security, then write a `supabaseBackend()` in `store.tsx` with the same five methods as `localBackend()` (start, saveProfile, put, remove). Nothing else in the app needs to change.
+
+## Suggested split (Sijie + Chloe)
+
+- **Sijie — Chats & follow-ups:** `LogChatModal`, `DraftModal`, `Dashboard`, `Calendar`, `Schedule`, `lib/ai.ts`, funnel analytics, Supabase backend.
+- **Chloe — Contacts & profile:** `Contacts`, `ContactForm`, `ContactProfile`, `Profile`, `Landing`, `Onboarding`, visual polish against Stitch.
+- Shared rule: change `lib/types.ts` together, one feature branch per change, open a PR and let the other person review the Vercel preview link.

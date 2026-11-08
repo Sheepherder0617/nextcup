@@ -1,0 +1,188 @@
+import { useEffect, useMemo, useState } from "react";
+import { useStore } from "../lib/store";
+import { intent, useNav } from "../lib/nav";
+import { Avatar, Button, Card, Chip, Empty, Icon, Input, Label, Segmented, Select, Toggle, cx, useToast } from "../components/ui";
+import { RoleChips } from "../components/bits";
+import { aiAvailable } from "../lib/ai";
+import { addDays, timezoneLabel, todayISO, uid } from "../lib/date";
+import { FORMAT_ICON, FORMAT_LABEL, type ChatEvent, type Format } from "../lib/types";
+import { eventToIcs, saveFile } from "../lib/files";
+
+const SLOTS = Array.from({ length: 29 }, (_, i) => {
+  const mins = 7 * 60 + i * 30;
+  const v = `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
+  const label = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(2000, 0, 1, Math.floor(mins / 60), mins % 60));
+  return { v, label };
+});
+const FORMAT_HINT: Record<Format, string> = { video: "Google Meet / Zoom / Teams", inperson: "Café or campus spot", phone: "Direct dial call" };
+
+export function Schedule({ contactId }: { contactId?: string }) {
+  const store = useStore();
+  const { go } = useNav();
+  const toast = useToast();
+  const [cid, setCid] = useState(contactId ?? "");
+  const [picking, setPicking] = useState(!contactId);
+  const [q, setQ] = useState("");
+  const [format, setFormat] = useState<Format>("video");
+  const [link, setLink] = useState("");
+  const [place, setPlace] = useState("");
+  const [date, setDate] = useState(todayISO(addDays(new Date(), 2)));
+  const [time, setTime] = useState("10:30");
+  const [duration, setDuration] = useState(store.profile?.durationMin ?? 30);
+  const [topic, setTopic] = useState("");
+  const [prep, setPrep] = useState(true);
+  const [aiOk, setAiOk] = useState(false);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { aiAvailable().then(setAiOk); }, []);
+
+  const c = store.contactById(cid);
+  const filtered = useMemo(() => {
+    const n = q.trim().toLowerCase();
+    return store.contacts.filter((x) => !n || `${x.name} ${x.company} ${x.title}`.toLowerCase().includes(n)).sort((a, b) => a.name.localeCompare(b.name));
+  }, [store.contacts, q]);
+
+  if (store.contacts.length === 0) {
+    return (
+      <Card><Empty icon="person_add" title="Add someone first" action={<Button variant="primary" icon="person_add" onClick={() => go("add-contact")}>Add a contact</Button>}>
+        You’ll pick who you’re meeting from your contacts. It takes a minute to add one.
+      </Empty></Card>
+    );
+  }
+
+  const step = !c ? 1 : 2;
+
+  async function submit() {
+    if (!c) { toast("Choose who you’re meeting.", "error"); return; }
+    if (!date) { toast("Pick a date.", "error"); return; }
+    setBusy(true);
+    const ev: ChatEvent = {
+      id: uid("e"), contactId: c.id, kind: "coffee", start: `${date}T${time}`, durationMin: duration, format,
+      link: format === "video" && link.trim() ? link.trim() : undefined,
+      location: format === "inperson" ? place.trim() || undefined : format === "phone" ? place.trim() || undefined : undefined,
+      topic: topic.trim() || undefined, status: "planned", createdAt: new Date().toISOString(),
+    };
+    try {
+      await store.upsertEvent(ev);
+      toast(`Chat with ${c.name.split(" ")[0]} scheduled`);
+      if (prep && aiOk) { intent.generatePrepFor = c.id; intent.tab = "prep"; }
+      go("contact", c.id);
+    } catch { setBusy(false); }
+  }
+
+  return (
+    <div className="flex flex-col gap-6 rise">
+      <div className="flex flex-col gap-2">
+        <span className="self-start inline-flex items-center gap-1.5 rounded-full bg-peach text-on-peach px-3 py-1 text-[11px] font-bold tracking-[0.06em]"><Icon name="auto_awesome" className="text-[15px]" />AI NETWORKING ASSISTANT · MEETING SCHEDULER</span>
+        <h1 className="font-serif text-[36px] md:text-[44px] font-semibold leading-tight">Schedule a Coffee Chat</h1>
+        <p className="text-fg-2 text-[17px] max-w-[62ch]">Set up the conversation, pick a format and time, and let the assistant build your prep brief.</p>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] items-start">
+        <div className="flex flex-col gap-6 min-w-0">
+          <Card className="p-5 md:p-6 flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="label-caps text-fg-2 flex items-center gap-2"><Icon name="person_search" className="text-[18px]" />Select contact</p>
+              <button type="button" onClick={() => go("add-contact")} className="inline-flex items-center gap-1 rounded-full bg-sunken px-3 py-1.5 text-[12px] font-bold text-fg-2 hover:bg-card-2"><Icon name="add" className="text-[16px]" />Create New Contact</button>
+            </div>
+            {c && !picking ? (
+              <div className="rounded-xl border border-line bg-card-2 p-4 flex items-center gap-4">
+                <Avatar name={c.name} size={48} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5"><span className="text-[18px] font-bold mr-1">{c.name}</span><RoleChips roles={c.roleTypes.slice(0, 2)} school={c.school} /></div>
+                  <p className="text-[14px] text-fg-2 truncate">{[c.title, c.company].filter(Boolean).join(" at ")}</p>
+                </div>
+                <Button variant="ghost" icon="swap_horiz" aria-label="Change contact" onClick={() => setPicking(true)} />
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <Input icon="search" aria-label="Search contacts" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search your contacts…" />
+                <ul className="max-h-72 overflow-y-auto scroll-thin flex flex-col gap-1 rounded-xl border border-line p-1.5">
+                  {filtered.map((x) => (
+                    <li key={x.id}>
+                      <button type="button" onClick={() => { setCid(x.id); setPicking(false); }} className={cx("w-full flex items-center gap-3 rounded-lg p-2.5 text-left hover:bg-card-2", x.id === cid && "bg-card-2")}>
+                        <Avatar name={x.name} size={36} />
+                        <span className="min-w-0"><span className="block font-semibold">{x.name}</span><span className="block text-[13px] text-fg-3 truncate">{[x.title, x.company].filter(Boolean).join(" at ") || "—"}</span></span>
+                      </button>
+                    </li>
+                  ))}
+                  {filtered.length === 0 && <li className="p-3 text-[14px] text-fg-3">No one matches “{q}”.</li>}
+                </ul>
+              </div>
+            )}
+          </Card>
+
+          <Card className={cx("p-5 md:p-6 flex flex-col gap-5", step < 2 && "opacity-60")}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-[20px] font-bold flex items-center gap-2"><Icon name="video_chat" />Format & Location</h2>
+              <span className="label-caps text-fg-3">Step {step} of 2</span>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-3" role="radiogroup" aria-label="Format">
+              {(["video", "inperson", "phone"] as Format[]).map((f) => (
+                <button key={f} type="button" role="radio" aria-checked={format === f} onClick={() => setFormat(f)}
+                  className={cx("text-left rounded-xl p-4 border transition flex flex-col gap-2 min-h-[110px]", format === f ? "bg-ink text-on-ink border-transparent shadow-lift" : "bg-card border-line hover:bg-card-2")}>
+                  <span className="flex justify-between"><Icon name={FORMAT_ICON[f]} className="text-[24px]" /><Icon name={format === f ? "check_circle" : "radio_button_unchecked"} className="text-[20px] opacity-80" /></span>
+                  <span className="font-semibold">{FORMAT_LABEL[f]}</span>
+                  <span className={cx("text-[13px]", format === f ? "opacity-80" : "text-fg-3")}>{FORMAT_HINT[f]}</span>
+                </button>
+              ))}
+            </div>
+            {format === "video" && (
+              <div className="rounded-xl bg-card-2 border border-line p-4 flex flex-col gap-3">
+                <Label htmlFor="sc-link" hint={<a href="https://meet.google.com/new" target="_blank" rel="noreferrer" className="text-brand font-semibold inline-flex items-center gap-1"><Icon name="add_link" className="text-[15px]" />Create a Google Meet link</a>}>Meeting link</Label>
+                <Input id="sc-link" type="url" icon="link" value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://meet.google.com/abc-defg-hij" />
+              </div>
+            )}
+            {format !== "video" && (
+              <div><Label htmlFor="sc-place" hint="Optional">{format === "inperson" ? "Where" : "Phone number"}</Label>
+                <Input id="sc-place" icon={format === "inperson" ? "local_cafe" : "call"} value={place} onChange={(e) => setPlace(e.target.value)} placeholder={format === "inperson" ? "Pilot Coffee, Rotman café…" : "(416) 555-0123"} /></div>
+            )}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div><Label htmlFor="sc-date">Date</Label><Input id="sc-date" type="date" icon="calendar_today" min={todayISO()} value={date} onChange={(e) => setDate(e.target.value)} /></div>
+              <div><Label htmlFor="sc-time" hint={`${duration} mins`}>Time slot</Label>
+                <Select id="sc-time" value={time} onChange={(e) => setTime(e.target.value)}>{SLOTS.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}</Select></div>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Segmented label="Duration" value={duration} onChange={setDuration} options={[15, 30, 45, 60].map((m) => ({ value: m, label: `${m}m` }))} />
+              <span className="text-[13px] text-fg-3 inline-flex items-center gap-1.5"><Icon name="public" className="text-[16px]" />{timezoneLabel()}</span>
+            </div>
+            <div><Label htmlFor="sc-topic" hint="Optional">Topic</Label>
+              <Input id="sc-topic" icon="psychology" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Breaking into fintech product roles" /></div>
+          </Card>
+        </div>
+
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-24">
+          <Card className="p-5 md:p-6 flex flex-col gap-4 ai-glow">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-[20px] font-bold flex items-center gap-2"><Icon name="neurology" />AI Prep Brief</h2>
+              <Chip tone={aiOk ? "peach" : "neutral"}>{aiOk ? "Automatic" : "Unavailable"}</Chip>
+            </div>
+            <p className="text-[14px] text-fg-2">
+              {aiOk ? <>When you schedule, the assistant drafts a brief for {c ? c.name.split(" ")[0] : "your contact"}: an opener, tailored questions, common ground and an agenda for {duration} minutes.</>
+                : <>AI isn’t connected in this view, so no brief will be generated. You can still schedule and add notes.</>}
+            </p>
+            <ul className="rounded-xl bg-card border border-line p-3 flex flex-col gap-2 text-[13px]">
+              {[["Prep brief", aiOk && prep ? "Right after scheduling" : "Off"], ["Calendar invite", ".ics with reminders"], ["Follow-up drafts", "Planned after you log the chat"]].map(([a, b]) => (
+                <li key={a} className="flex justify-between gap-3"><span className="inline-flex items-center gap-2 font-semibold"><Icon name="check_circle" className="text-[16px] text-blue" />{a}</span><span className="text-fg-2 text-right">{b}</span></li>
+              ))}
+            </ul>
+            {aiOk && <Toggle id="sc-prep" checked={prep} onChange={setPrep} label="Generate prep brief" hint="Uses your profile and notes on this contact" icon="bolt" />}
+          </Card>
+          {c && (
+            <Button variant="ghost" icon="event" onClick={() => saveFile(`coffee-chat-${c.name.split(" ")[0].toLowerCase()}.ics`,
+              eventToIcs({ id: "preview", contactId: c.id, kind: "coffee", start: `${date}T${time}`, durationMin: duration, format, link, location: place, topic, status: "planned", createdAt: "" }, c), "text/calendar")}>
+              Download calendar invite (.ics)
+            </Button>
+          )}
+        </aside>
+      </div>
+
+      <div className="sticky z-30 -mx-4 md:mx-0 bottom-[calc(72px+env(safe-area-inset-bottom,0px))] md:bottom-4 gutter md:px-5 py-3 bg-header/95 backdrop-blur border-y md:border border-line md:rounded-2xl shadow-lift flex flex-wrap items-center justify-between gap-3">
+        <span className="hidden sm:inline-flex items-center gap-2 text-[13px] text-fg-3"><Icon name="verified_user" className="text-[18px]" />Private to you · reminders via your own calendar</span>
+        <div className="flex gap-2 ml-auto">
+          <Button variant="secondary" onClick={() => go("calendar")}>Discard</Button>
+          <Button variant="primary" icon="event_available" onClick={submit} disabled={busy || !c}>{aiOk && prep ? "Schedule Chat & Activate AI Prep" : "Schedule Chat"}</Button>
+        </div>
+      </div>
+    </div>
+  );
+}

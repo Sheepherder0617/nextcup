@@ -147,7 +147,7 @@ export function LogChatModal({ target, onClose }: { target: LogTarget | null; on
         )}
 
         <div className="rounded-xl ai-glow border border-line p-3.5 flex flex-col gap-2.5">
-          <Label htmlFor="log-raw">Rough notes</Label>
+          <Label htmlFor="log-raw">Notes</Label>
           <TextArea id="log-raw" value={raw} onChange={(e) => setRaw(e.target.value)} rows={4}
             placeholder="What they said about the role, advice, names they mentioned, what you promised to send…" />
           <div className="flex flex-wrap items-center gap-3">

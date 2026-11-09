@@ -33,7 +33,10 @@ export function ProfilePage() {
             <span className="inline-flex items-center gap-1.5"><Icon name="schedule" className="text-[17px]" />{timezoneLabel()}</span>
           </div>
         </div>
-        <Button variant="primary" icon="edit" onClick={() => setEditing(true)} className="self-start md:self-center">Edit Profile Details</Button>
+        <div className="flex flex-wrap gap-2 self-start md:self-center">
+          <Button variant="primary" icon="edit" onClick={() => setEditing(true)}>Edit Profile Details</Button>
+          {store.auth.enabled && <Button variant="secondary" icon="logout" onClick={() => store.auth.signOut()}>Sign out</Button>}
+        </div>
       </Card>
 
       <div role="tablist" aria-label="Profile sections" className="flex gap-2 overflow-x-auto pb-1 border-b border-line">
@@ -260,7 +263,7 @@ function Privacy() {
   async function wipe() {
     await store.wipeAll();
     setConfirm(false);
-    go("welcome");
+    go(store.auth.enabled ? "signup" : "welcome");
   }
 
   return (
@@ -268,9 +271,11 @@ function Privacy() {
       <Card className="p-5 md:p-7 flex flex-col gap-4">
         <h2 className="font-serif text-[26px] font-semibold">Where your data lives</h2>
         <div className="rounded-xl bg-card-2 border border-line p-4 flex gap-3">
-          <Icon name={store.mode === "cloud" ? "cloud_done" : "smartphone"} className="text-brand text-[24px]" />
+          <Icon name={store.mode === "local" ? "smartphone" : "cloud_done"} className="text-brand text-[24px]" />
           <p className="text-[14px] text-fg-2">{store.mode === "cloud"
             ? "Saved privately to your account in this NextCup workspace. Other people who open the same link get their own separate, empty workspace and can’t see yours."
+            : store.mode === "supabase"
+            ? `Saved to your NextCup account (${store.auth.email}). Only you can read your contacts and notes, and they sync to every device you sign in on.`
             : "Saved in this browser on this device. Clearing your browser data removes it, so export a backup now and then."}</p>
         </div>
         <ul className="text-[14px] text-fg-2 flex flex-col gap-1.5">

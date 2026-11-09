@@ -5,6 +5,9 @@
 // Provider: Groq (OpenAI-compatible). Set these environment variables:
 //   GROQ_API_KEY   required — from console.groq.com → API Keys
 //   GROQ_MODEL     optional — defaults to openai/gpt-oss-120b
+//   AI_DAILY_LIMIT optional — AI requests per person per day (default 40)
+// When VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY are set, only signed-in users can
+// call this endpoint, and each person's daily count is kept in Supabase (ai_usage table).
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const DEFAULT_MODEL = "openai/gpt-oss-120b";
@@ -15,8 +18,30 @@ export class AiHttpError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
 
+type Env = Record<string, string | undefined>;
+
+/** Checks the caller's Supabase session and counts the request against their daily limit.
+ *  Does nothing when Supabase isn't configured (e.g. quick local tinkering). */
+export async function authorize(authHeader: string | undefined, env: Env = process.env): Promise<void> {
+  const url = env.VITE_SUPABASE_URL;
+  const key = env.VITE_SUPABASE_PUBLISHABLE_KEY ?? env.VITE_SUPABASE_ANON_KEY;
+  if (!url || !key) return;
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  if (!token) throw new AiHttpError(401, "Sign in to use AI features");
+  const headers = { apikey: key, authorization: `Bearer ${token}`, "content-type": "application/json" };
+
+  const who = await fetch(`${url}/auth/v1/user`, { headers });
+  if (!who.ok) throw new AiHttpError(401, "Session expired");
+
+  const bump = await fetch(`${url}/rest/v1/rpc/bump_ai_usage`, { method: "POST", headers, body: "{}" });
+  if (!bump.ok) throw new AiHttpError(502, `Usage counter failed: ${bump.status}`);
+  const count = Number(await bump.json());
+  const limit = Number(env.AI_DAILY_LIMIT) || 40;
+  if (count > limit) throw new AiHttpError(429, "daily_limit");
+}
+
 /** Calls Groq and returns the reply text. Shared by the Vercel function and the dev server. */
-export async function complete(messages: Msg[], json: boolean, env: Record<string, string | undefined> = process.env): Promise<string> {
+export async function complete(messages: Msg[], json: boolean, env: Env = process.env): Promise<string> {
   const key = env.GROQ_API_KEY;
   if (!key) throw new AiHttpError(503, "GROQ_API_KEY is not set on the server");
 
@@ -58,11 +83,19 @@ export default async function handler(req: any, res: any) {
   const { messages, json } = req.body ?? {};
   if (!Array.isArray(messages) || !messages.length) return res.status(400).json({ error: "messages required" });
   try {
+    await authorize(req.headers?.authorization);
     const text = await complete(messages, !!json);
     return res.status(200).json({ text });
   } catch (e: any) {
     const status = e instanceof AiHttpError ? e.status : 500;
     console.error("[api/ai]", e?.message);
-    return res.status(status).json({ error: status === 429 ? "rate_limited" : "ai_unavailable" });
+    return res.status(status).json({ error: errorCode(status, e?.message) });
   }
+}
+
+export function errorCode(status: number, message?: string): string {
+  if (status === 401) return "session_expired";
+  if (status === 429) return message === "daily_limit" ? "daily_limit" : "rate_limited";
+  if (status === 503) return "unavailable";
+  return "ai_unavailable";
 }

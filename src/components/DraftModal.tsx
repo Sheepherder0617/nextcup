@@ -61,7 +61,7 @@ export function DraftModal({ eventId, onClose }: { eventId: string | null; onClo
     const existingLog = store.notes.find((n) => n.eventId === ev.id && (n.kind === "note" || n.kind === "followup_message"));
     const sentNote: Note = {
       id: existingLog?.id ?? uid("n"), contactId: c.id, eventId: ev.id, date: sentDate,
-      headline: ev.kind === "thankyou" ? "Thank-you message sent" : "Follow-up message sent",
+      headline: ev.title?.trim() || ev.topic?.trim() || (ev.kind === "thankyou" ? "Thank-you message sent" : "Follow-up message sent"),
       body: text.trim(), kind: sentKind, createdAt: existingLog?.createdAt ?? now,
     };
     await store.upsertNote(sentNote);

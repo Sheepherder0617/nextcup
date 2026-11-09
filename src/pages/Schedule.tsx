@@ -94,7 +94,6 @@ export function Schedule({ contactId }: { contactId?: string }) {
           });
         }
         toast(`Chat with ${c.name.split(" ")[0]} scheduled · thank-you in 1 day${followUpMonths ? ` · follow-up in ${followUpMonths} months` : ""}`);
-        if (prep && aiOk) { intent.generatePrepFor = c.id; intent.tab = "prep"; }
       } else {
         const ev: ChatEvent = {
           id: uid("e"), contactId: c.id, kind: "followup", start: `${date}T${time}`, durationMin: 15,
@@ -103,7 +102,10 @@ export function Schedule({ contactId }: { contactId?: string }) {
         await store.upsertEvent(ev);
         toast(`Follow-up with ${c.name.split(" ")[0]} scheduled`);
       }
-      go("contact", c.id);
+      const shouldGeneratePrep = eventType === "coffee" && prep && aiOk;
+      intent.generatePrepFor = shouldGeneratePrep ? c.id : undefined;
+      intent.tab = shouldGeneratePrep ? "prep" : undefined;
+      go("calendar");
     } catch { setBusy(false); }
   }
 

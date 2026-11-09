@@ -8,11 +8,11 @@ import type { Profile } from "../lib/types";
 const splitList = (s: string) => s.split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
 
 export function Onboarding() {
-  const { saveProfile, viewer, mode, profile } = useStore();
+  const { saveProfile, viewer, mode, profile, auth } = useStore();
   const { go } = useNav();
   const toast = useToast();
   const [name, setName] = useState(profile?.name ?? viewer.name ?? "");
-  const [email, setEmail] = useState(profile?.email ?? "");
+  const [email, setEmail] = useState(profile?.email ?? auth.email ?? "");
   const [headline, setHeadline] = useState(profile?.headline ?? "");
   const [school, setSchool] = useState(profile?.school ?? "");
   const [roles, setRoles] = useState(profile?.targetRoles.join(", ") ?? "");
@@ -76,8 +76,8 @@ export function Onboarding() {
             <div className="flex items-center gap-4 rounded-xl bg-card-2 border border-line p-4">
               <Avatar name={name || "You"} src={viewer.avatarUrl} size={60} />
               <div className="text-[13px] text-fg-2">
-                <p className="font-semibold text-fg text-sm">{mode === "cloud" ? "Signed in with your Claude account" : "Saved on this device"}</p>
-                <p>{mode === "cloud" ? "Your contacts and notes are private to you. Nobody else who opens this page can see them." : "Data stays in this browser. Connect a database later to sync across devices."}</p>
+                <p className="font-semibold text-fg text-sm">{mode === "cloud" ? "Signed in with your Claude account" : mode === "supabase" ? `Signed in as ${auth.email}` : "Saved on this device"}</p>
+                <p>{mode === "cloud" ? "Your contacts and notes are private to you. Nobody else who opens this page can see them." : mode === "supabase" ? "Your contacts and notes are private to your account and sync across your devices." : "Data stays in this browser. Connect a database later to sync across devices."}</p>
               </div>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">

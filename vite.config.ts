@@ -19,11 +19,15 @@ function devAiEndpoint(env: Record<string, string>): Plugin {
         try {
           const { messages, json } = JSON.parse(raw || "{}");
           const mod = await server.ssrLoadModule("/api/ai.ts");
-          const text = await mod.complete(messages, !!json, { ...process.env, ...env });
+          const merged = { ...process.env, ...env };
+          await mod.authorize(req.headers.authorization as string | undefined, merged);
+          const text = await mod.complete(messages, !!json, merged);
           send(200, { text });
         } catch (e: any) {
           console.error("[dev /api/ai]", e?.message);
-          send(e?.status ?? 500, { error: e?.status === 429 ? "rate_limited" : "ai_unavailable" });
+          const status = e?.status ?? 500;
+          const mod = await server.ssrLoadModule("/api/ai.ts").catch(() => null);
+          send(status, { error: mod ? mod.errorCode(status, e?.message) : "ai_unavailable" });
         }
       });
     },

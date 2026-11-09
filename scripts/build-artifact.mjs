@@ -17,6 +17,7 @@ const js = await esbuild.build({
   bundle: true, minify: true, format: "iife", target: "es2020", write: false,
   jsx: "automatic", nodePaths: [NM], legalComments: "none",
   loader: { ".css": "empty" },
+  external: ["@supabase/supabase-js"], // only loaded when Supabase env vars are set, never in the Claude-hosted build
   define: { "process.env.NODE_ENV": '"production"', __AI_ENDPOINT__: JSON.stringify(process.env.VITE_AI_ENDPOINT || "") },
 });
 const bundle = js.outputFiles[0].text;

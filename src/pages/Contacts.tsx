@@ -3,7 +3,7 @@ import { useStore } from "../lib/store";
 import { useNav } from "../lib/nav";
 import { Avatar, Button, Card, Empty, Icon, cx } from "../components/ui";
 import { GoalChips, MetLine, RoleChips } from "../components/bits";
-import { dueTasks, lastContactOf, upcomingChats } from "../lib/derive";
+import { lastContactOf } from "../lib/derive";
 import { formatDate } from "../lib/date";
 import type { RoleType } from "../lib/types";
 
@@ -28,7 +28,7 @@ export function Contacts() {
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return store.contacts
-      .map((c) => ({ c, last: lastContactOf(c, store.events, store.notes) }))
+      .map((c) => ({ c, last: lastContactOf(c, store.events) }))
       .filter(({ c }) => filter === "all" || c.roleTypes.includes(filter))
       .filter(({ c }) => !needle || [c.name, c.company, c.title, c.metAt, c.school, ...c.roleTypes].join(" ").toLowerCase().includes(needle))
       .sort((a, b) => sort === "name" ? a.c.name.localeCompare(b.c.name) : (b.last ?? b.c.createdAt).localeCompare(a.last ?? a.c.createdAt));
@@ -38,13 +38,6 @@ export function Contacts() {
   const cur = Math.min(page, pages - 1);
   const shown = rows.slice(cur * PAGE, cur * PAGE + PAGE);
 
-  const stats = [
-    { label: "Total chats", value: `${store.events.filter((e) => e.kind === "coffee" && e.status === "done").length} Logged`, icon: "local_cafe" },
-    { label: "Active mentors", value: `${store.contacts.filter((c) => c.roleTypes.includes("mentor")).length} Active`, icon: "school" },
-    { label: "Upcoming chats", value: `${upcomingChats(store.events).length} Scheduled`, icon: "calendar_month" },
-    { label: "Follow-ups due", value: `${dueTasks(store.events, 7).length} Reminders`, icon: "notifications_active", alert: dueTasks(store.events, 7).length > 0 },
-  ];
-
   return (
     <div className="flex flex-col gap-6 rise">
       <div className="flex flex-col md:flex-row md:items-end gap-4 justify-between">
@@ -52,21 +45,8 @@ export function Contacts() {
           <h1 className="font-serif text-[36px] md:text-[44px] font-semibold leading-tight flex items-center gap-3 flex-wrap">
             Contacts <span className="font-sans text-[13px] font-bold rounded-full bg-card border border-line px-2.5 py-1 tnum">{store.contacts.length} Connections</span>
           </h1>
-          <p className="text-fg-2 max-w-[58ch]">Track coffee chats, conversation prompts and upcoming follow-up commitments across your alumni and industry network.</p>
         </div>
         <Button variant="primary" icon="person_add" onClick={() => go("add-contact")} className="self-start md:self-auto">Add New Contact</Button>
-      </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        {stats.map((s) => (
-          <Card key={s.label} className="p-4 flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className="label-caps text-fg-3">{s.label}</p>
-              <p className={cx("font-serif text-[22px] md:text-[26px] font-semibold mt-1 tnum", s.alert && "text-danger")}>{s.value}</p>
-            </div>
-            <span className={cx("grid place-items-center w-9 h-9 rounded-lg shrink-0", s.alert ? "bg-danger-soft text-danger" : "bg-peach text-on-peach")}><Icon name={s.icon} className="text-[20px]" /></span>
-          </Card>
-        ))}
       </div>
 
       <Card className="p-3 flex flex-col lg:flex-row gap-3 lg:items-center">
@@ -83,7 +63,7 @@ export function Contacts() {
               <button key={f.key} type="button" aria-pressed={filter === f.key} onClick={() => { setFilter(f.key); setPage(0); }}
                 className={cx("h-9 px-3.5 rounded-full text-[13px] font-semibold whitespace-nowrap border transition",
                   filter === f.key ? "bg-ink text-on-ink border-transparent" : "bg-card border-line text-fg-2 hover:bg-card-2")}>
-                {f.label}{f.key === "all" ? ` (${n})` : ""}
+                {f.label} ({n})
               </button>
             );
           })}

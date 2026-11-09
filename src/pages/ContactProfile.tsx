@@ -8,7 +8,7 @@ import { aiAvailable, aiErrorText, generateFollowUps, generatePrepBrief } from "
 import { isOverdue, lastContactOf, nextChatFor } from "../lib/derive";
 import { formatDate, formatTime, fromNow, relativeDay, timeRange, todayISO, uid } from "../lib/date";
 import { eventToIcs, saveFile } from "../lib/files";
-import { FORMAT_LABEL, KIND_LABEL, type ChatEvent, type ChecklistItem, type Contact, type Note, type NoteKind } from "../lib/types";
+import { FORMAT_LABEL, KIND_LABEL, type ChatEvent, type Contact, type Note, type NoteKind } from "../lib/types";
 
 type Tool = "history" | "log" | "ideas";
 
@@ -27,7 +27,7 @@ export function ContactProfile({ id }: { id: string }) {
   const events = store.events.filter((e) => e.contactId === c.id);
   const notes = store.notes.filter((n) => n.contactId === c.id);
   const next = nextChatFor(c.id, store.events);
-  const last = lastContactOf(c, store.events, store.notes);
+  const last = lastContactOf(c, store.events);
 
   return (
     <div className="flex flex-col gap-6 rise">
@@ -64,7 +64,7 @@ export function ContactProfile({ id }: { id: string }) {
             </div>
           ) : (
             <div className="flex gap-2 flex-wrap">
-              <Button variant="primary" icon="event_available" onClick={() => go("schedule", c.id)}>Schedule a chat</Button>
+              <Button variant="primary" icon="event_available" onClick={() => go("schedule", c.id)}>Schedule Event</Button>
               <Button variant="secondary" icon="edit_note" onClick={() => openLog({ contactId: c.id })}>Log a chat</Button>
             </div>
           )}
@@ -77,7 +77,7 @@ export function ContactProfile({ id }: { id: string }) {
       </Card>
 
       <div role="tablist" aria-label="Contact sections" className="self-start inline-flex rounded-2xl bg-card-2 border border-line p-1.5 gap-1">
-        {([["overview", "Overview & AI Suite", "auto_awesome"], ["prep", "Meeting Prep & Research", "menu_book"]] as const).map(([k, l, ic]) => (
+        {([["overview", "History & AI Suite", "auto_awesome"], ["prep", "Meeting Prep & Research", "menu_book"]] as const).map(([k, l, ic]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
             className={cx("inline-flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-semibold transition", tab === k ? "bg-card shadow-soft text-fg" : "text-fg-2 hover:text-fg")}>
             <Icon name={ic} className="text-[18px]" />{l}
@@ -88,8 +88,8 @@ export function ContactProfile({ id }: { id: string }) {
       {tab === "overview" ? (
         <>
           <div className="grid gap-3 md:gap-4 md:grid-cols-3" role="group" aria-label="Tools">
-            <ToolCard active={tool === "history"} onClick={() => setTool("history")} icon="history_edu" tag={`${events.length} event${events.length === 1 ? "" : "s"}`} title="Meeting History" text="Past chats, upcoming chats and follow-up touchpoints." />
-            <ToolCard active={tool === "log"} onClick={() => setTool("log")} icon="edit_note" tag="Notes & Debriefs" title="Log History" text="Captured takeaways, prep reflections and quick debriefs." />
+            <ToolCard active={tool === "history"} onClick={() => setTool("history")} icon="history_edu" tag={`${events.length} event${events.length === 1 ? "" : "s"}`} title="Meeting History" text="All chats, follow-up touchpoints, and thank you messages." />
+            <ToolCard active={tool === "log"} onClick={() => setTool("log")} icon="edit_note" tag="Notes & Debriefs" title="Log History" text="Logged coffee chats, follow-up messages, and quick notes." />
             <ToolCard active={tool === "ideas"} onClick={() => setTool("ideas")} icon="lightbulb" tag={`${store.profile?.followUpWeeks ?? 3}-wk cadence`} title="Follow-up Ideas" text="AI re-engagement hooks tailored to what you discussed." />
           </div>
           {tool === "history" && <HistoryPanel c={c} events={events} notes={notes} onDraft={setDraftId} />}
@@ -132,12 +132,11 @@ function HistoryPanel({ c, events, notes, onDraft }: { c: Contact; events: ChatE
     <Card className="p-5 md:p-7 flex flex-col gap-5">
       <div className="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-line">
         <div>
-          <h2 className="font-serif text-[26px] md:text-[30px] font-semibold leading-tight">Chronological Meeting History</h2>
-          <p className="text-fg-2 text-[14px]">All formal and informal interactions with {c.name} logged with quick takeaways.</p>
+          <h2 className="font-serif text-[26px] md:text-[30px] font-semibold leading-tight">Meeting History</h2>
+          <p className="text-fg-2 text-[14px]">All formal and informal interactions with {c.name}.</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="secondary" icon="event_available" onClick={() => go("schedule", c.id)}>Schedule</Button>
-          <Button variant="primary" icon="edit_square" onClick={() => openLog({ contactId: c.id })}>Add Meeting Notes</Button>
+          <Button variant="secondary" icon="event_available" onClick={() => go("schedule", c.id)}>Schedule Event</Button>
         </div>
       </div>
       {sorted.length === 0 ? (
@@ -161,27 +160,39 @@ function HistoryPanel({ c, events, notes, onDraft }: { c: Contact; events: ChatE
                 </div>
                 <div className="mt-2 rounded-xl bg-card-2 border border-line">
                   <div className="flex flex-wrap items-center gap-3 justify-between p-4">
-                    <p className="font-semibold text-[16px]">{note?.headline || e.topic || (e.kind === "coffee" ? "Coffee chat" : KIND_LABEL[e.kind])}</p>
+                    <p className="font-semibold text-[16px]">{note?.headline || e.title || e.topic || (e.kind === "coffee" ? "Coffee chat" : KIND_LABEL[e.kind])}</p>
                     <div className="flex gap-2 flex-wrap">
                       {e.kind === "coffee" && e.status === "planned" && <>
                         <Button size="sm" variant="ghost" icon="auto_awesome" onClick={() => openPrep(c.id, e.id)}>Brief</Button>
                         <Button size="sm" variant="ghost" icon="event" onClick={() => saveFile(`coffee-chat-${c.name.split(" ")[0].toLowerCase()}.ics`, eventToIcs(e, c), "text/calendar")}>.ics</Button>
-                        <Button size="sm" variant="secondary" icon="edit_note" onClick={() => openLog({ eventId: e.id })}>Log debrief</Button>
+                        <Button size="sm" variant="secondary" icon="edit_note" onClick={() => openLog({ eventId: e.id })}>Log a chat</Button>
                       </>}
-                      {e.kind !== "coffee" && e.status === "planned" && <Button size="sm" variant="secondary" icon="edit" onClick={() => onDraft(e.id)}>Write it</Button>}
-                      {(note || e.draft || (e.kind === "coffee" && e.status === "planned")) && (
+                      {(e.kind === "followup" || e.kind === "thankyou") && e.status === "planned" && <Button size="sm" variant="ghost" icon="auto_awesome" onClick={() => openPrep(c.id, e.id)}>Brief</Button>}
+                      {e.kind !== "coffee" && e.status === "planned" && <Button size="sm" variant="secondary" icon="edit" onClick={() => onDraft(e.id)}>Draft message</Button>}
+                      {e.kind === "coffee" ? (
                         <button type="button" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : e.id)} className="inline-flex items-center gap-1 h-8 px-3 rounded-lg bg-card text-[13px] font-semibold">
-                          {note ? "View full notes" : e.draft ? "View message" : "View agenda"}<Icon name={isOpen ? "expand_less" : "expand_more"} className="text-[18px]" />
+                          {isOpen ? "Hide meeting details" : "View meeting details"}<Icon name={isOpen ? "expand_less" : "expand_more"} className="text-[18px]" />
+                        </button>
+                      ) : e.draft && (
+                        <button type="button" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : e.id)} className="inline-flex items-center gap-1 h-8 px-3 rounded-lg bg-card text-[13px] font-semibold">
+                          {isOpen ? "Hide message" : "View message"}<Icon name={isOpen ? "expand_less" : "expand_more"} className="text-[18px]" />
                         </button>
                       )}
                     </div>
                   </div>
                   {isOpen && (
-                    <div className="px-4 pb-4 text-[14px] text-fg-2 whitespace-pre-wrap border-t border-line pt-3">
-                      {note ? <>{note.body}{note.nextStep && <p className="mt-2 font-semibold text-fg"><Icon name="flag" className="text-[16px] align-[-3px] mr-1" />Next step: {note.nextStep}</p>}</>
-                        : e.draft ? e.draft
-                        : <>{timeRange(e.start, e.durationMin)}{e.location ? ` · ${e.location}` : ""}{e.link ? ` · ${e.link}` : ""}{e.topic ? `\nTopic: ${e.topic}` : "\nNo agenda yet. Open the AI brief to build one."}</>}
-                    </div>
+                    e.kind === "coffee" ? (
+                      <dl className="grid gap-3 border-t border-line px-4 pb-4 pt-3 text-[14px] sm:grid-cols-2">
+                        <div><dt className="label-caps text-fg-3">Date and time</dt><dd className="mt-1 text-fg-2">{formatDate(e.start)} · {timeRange(e.start, e.durationMin)}</dd></div>
+                        <div><dt className="label-caps text-fg-3">Duration</dt><dd className="mt-1 text-fg-2">{e.durationMin} minutes</dd></div>
+                        <div><dt className="label-caps text-fg-3">Format</dt><dd className="mt-1 text-fg-2">{e.format ? FORMAT_LABEL[e.format] : "Coffee chat"}</dd></div>
+                        {e.location && <div><dt className="label-caps text-fg-3">Location</dt><dd className="mt-1 text-fg-2">{e.location}</dd></div>}
+                        {e.link && <div><dt className="label-caps text-fg-3">Meeting link</dt><dd className="mt-1"><a href={e.link} target="_blank" rel="noreferrer" className="text-brand font-semibold break-all">{e.link}</a></dd></div>}
+                        {e.topic && <div className="sm:col-span-2"><dt className="label-caps text-fg-3">Topic</dt><dd className="mt-1 text-fg-2">{e.topic}</dd></div>}
+                      </dl>
+                    ) : (
+                      <div className="border-t border-line px-4 pb-4 pt-3 text-[14px] text-fg-2 whitespace-pre-wrap">{e.draft}</div>
+                    )
                   )}
                 </div>
               </li>
@@ -193,13 +204,14 @@ function HistoryPanel({ c, events, notes, onDraft }: { c: Contact; events: ChatE
   );
 }
 
-const KIND_NOTE: Record<NoteKind, string> = { debrief: "Meeting Debrief", prep: "Prep Note", intro: "First Impression", note: "Note" };
+const KIND_NOTE: Record<NoteKind, string> = { debrief: "Meeting Debrief", prep: "Prep Note", intro: "First Impression", note: "Note", followup_response: "Response to follow-up", followup_message: "Follow-up message" };
 
 function LogPanel({ c, notes }: { c: Contact; notes: Note[] }) {
   const store = useStore();
   const toast = useToast();
   const [edit, setEdit] = useState<Note | null>(null);
   const [del, setDel] = useState<Note | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
   const sorted = notes.slice().sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || b.date.localeCompare(a.date));
   const blank = (): Note => ({ id: uid("n"), contactId: c.id, date: todayISO(), headline: "", body: "", kind: "prep", createdAt: new Date().toISOString() });
   return (
@@ -207,7 +219,7 @@ function LogPanel({ c, notes }: { c: Contact; notes: Note[] }) {
       <div className="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-line">
         <div>
           <h2 className="font-serif text-[26px] md:text-[30px] font-semibold leading-tight flex items-center gap-2">Log History <Chip tone="neutral">{notes.length} Notes</Chip></h2>
-          <p className="text-fg-2 text-[14px]">Quick captured thoughts, meeting takeaways and personal debriefs with {c.name.split(" ")[0]}.</p>
+          <p className="text-fg-2 text-[14px]">Logged messages with {c.name.split(" ")[0]}.</p>
         </div>
         <Button variant="primary" icon="add" onClick={() => setEdit(blank())}>New Note</Button>
       </div>
@@ -227,9 +239,19 @@ function LogPanel({ c, notes }: { c: Contact; notes: Note[] }) {
                   <Button size="sm" variant="ghost" icon="delete" aria-label="Delete note" onClick={() => setDel(n)} />
                 </div>
               </div>
-              <h3 className="text-[17px] font-bold">{n.headline}</h3>
-              <p className="text-[14px] text-fg-2 whitespace-pre-wrap leading-relaxed">{n.body}</p>
-              {n.nextStep && <p className="text-[13px] font-semibold"><Icon name="flag" className="text-[15px] align-[-3px] mr-1 text-brand" />Next step: {n.nextStep}</p>}
+              <button type="button" aria-expanded={expanded === n.id} aria-controls={`log-note-${n.id}`}
+                onClick={() => setExpanded(expanded === n.id ? null : n.id)}
+                className="flex w-full items-center justify-between gap-3 text-left">
+                <span className="text-[17px] font-bold">{n.headline}</span>
+                <span className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold text-fg-3">
+                  {expanded === n.id ? "Hide note" : "View note"}
+                  <Icon name={expanded === n.id ? "expand_less" : "expand_more"} className="text-[20px]" />
+                </span>
+              </button>
+              {expanded === n.id && <div id={`log-note-${n.id}`} className="border-t border-line pt-3">
+                <p className="text-[14px] text-fg-2 whitespace-pre-wrap leading-relaxed">{n.body}</p>
+                {n.nextStep && <p className="text-[13px] font-semibold mt-2"><Icon name="flag" className="text-[15px] align-[-3px] mr-1 text-brand" />Next step: {n.nextStep}</p>}
+              </div>}
             </li>
           ))}
         </ul>
@@ -301,7 +323,7 @@ function IdeasPanel({ c, notes }: { c: Contact; notes: Note[] }) {
       <div className="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-line">
         <div>
           <h2 className="font-serif text-[26px] md:text-[30px] font-semibold leading-tight">Proactive Re-engagement Suggestions</h2>
-          <p className="text-fg-2 text-[14px]">Low-pressure ways to stay on {c.name.split(" ")[0]}’s radar, based on your notes.</p>
+          <p className="text-fg-2 text-[14px]">Low-pressure ways to stay on {c.name.split(" ")[0]}’s radar, based on your log history.</p>
         </div>
         {aiOk && <Button variant="ai" icon="auto_awesome" disabled={busy} onClick={gen}>{ideas ? "Regenerate" : "Generate ideas"}</Button>}
       </div>
@@ -338,19 +360,14 @@ function IdeasPanel({ c, notes }: { c: Contact; notes: Note[] }) {
   );
 }
 
-const SUGGESTED = ["Review their background and recent company news", "Prepare 3 specific questions", "Practise your 30-second intro for this chat", "Have your resume or portfolio link ready", "Decide the one thing you’d like to ask for"];
-
 function PrepPanel({ c, notes, next }: { c: Contact; notes: Note[]; next?: ChatEvent }) {
   const store = useStore();
   const { go, openPrep } = useNav();
   const aiOk = useAi();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [item, setItem] = useState("");
   const ctl = useRef<AbortController | null>(null);
   const brief = c.aiPrep;
-  const list = c.checklist ?? [];
-  const pct = list.length ? Math.round((list.filter((x) => x.done).length / list.length) * 100) : 0;
 
   async function gen() {
     ctl.current = new AbortController();
@@ -367,10 +384,8 @@ function PrepPanel({ c, notes, next }: { c: Contact; notes: Note[]; next?: ChatE
   }, [aiOk]);
   useEffect(() => () => ctl.current?.abort(), []);
 
-  const setList = (l: ChecklistItem[]) => store.upsertContact({ ...c, checklist: l, updatedAt: new Date().toISOString() });
-
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+    <div className="flex flex-col gap-6">
       <Card className="p-5 md:p-7 flex flex-col gap-5 ai-glow">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -384,7 +399,7 @@ function PrepPanel({ c, notes, next }: { c: Contact; notes: Note[]; next?: ChatE
         </div>
         {busy && <Thinking label="Building your brief" />}
         {err && <p className="text-danger text-sm">{err}</p>}
-        {aiOk === false && <p className="text-fg-2 text-sm rounded-xl bg-card p-4 border border-line">AI briefs aren’t connected in this view. Open NextCup inside Claude, or connect an AI endpoint. Your checklist and notes still work.</p>}
+        {aiOk === false && <p className="text-fg-2 text-sm rounded-xl bg-card p-4 border border-line">AI briefs aren’t connected in this view. Open NextCup inside Claude, or connect an AI endpoint. Contact notes remain available in the Overview tab.</p>}
         {!brief && !busy && aiOk && <p className="text-fg-2">Generate a brief with an opening line, questions, common ground and an agenda for a {store.profile?.durationMin ?? 30}-minute chat. It uses your profile, your research notes on {c.name.split(" ")[0]} and past debriefs.</p>}
         {brief && !busy && (
           <div className="flex flex-col gap-5">
@@ -409,45 +424,6 @@ function PrepPanel({ c, notes, next }: { c: Contact; notes: Note[]; next?: ChatE
           </div>
         )}
       </Card>
-
-      <div className="flex flex-col gap-6">
-        <Card className="p-5 md:p-6 flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="font-serif text-[22px] font-semibold">{c.name.split(" ")[0]}’s background</h2>
-            <Button size="sm" variant="ghost" icon="edit" onClick={() => go("edit", c.id)}>Edit</Button>
-          </div>
-          {c.notes ? <p className="text-[14px] text-fg-2 whitespace-pre-wrap leading-relaxed">{c.notes}</p>
-            : <p className="text-[14px] text-fg-3">No research notes yet. Add their education, past roles and anything you have in common.</p>}
-          {notes.filter((n) => n.kind === "intro").map((n) => (
-            <div key={n.id} className="rounded-xl bg-card-2 border border-line p-3 text-[13px]"><p className="label-caps text-fg-3">{n.headline}</p><p className="text-fg-2 mt-1">{n.body}</p></div>
-          ))}
-        </Card>
-
-        <Card className="p-5 md:p-6 flex flex-col gap-3">
-          <h2 className="font-serif text-[22px] font-semibold">Chat prep checklist</h2>
-          {list.length === 0 && <Button variant="soft" icon="playlist_add" onClick={() => setList(SUGGESTED.map((t) => ({ id: uid("k"), text: t, done: false })))}>Add suggested steps</Button>}
-          <ul className="flex flex-col gap-1">
-            {list.map((x) => (
-              <li key={x.id} className="flex items-start gap-3 group">
-                <input id={`ck-${x.id}`} type="checkbox" checked={x.done} onChange={() => setList(list.map((y) => (y.id === x.id ? { ...y, done: !y.done } : y)))} className="mt-1 w-4 h-4 accent-[var(--brand-2)]" />
-                <label htmlFor={`ck-${x.id}`} className={cx("flex-1 text-[14px] py-0.5", x.done && "line-through text-fg-3")}>{x.text}</label>
-                <button type="button" aria-label="Remove step" onClick={() => setList(list.filter((y) => y.id !== x.id))} className="text-fg-3 opacity-60 hover:opacity-100"><Icon name="close" className="text-[16px]" /></button>
-              </li>
-            ))}
-          </ul>
-          <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (item.trim()) { setList([...list, { id: uid("k"), text: item.trim(), done: false }]); setItem(""); } }}>
-            <label htmlFor="ck-new" className="sr-only">Add a step</label>
-            <input id="ck-new" value={item} onChange={(e) => setItem(e.target.value)} placeholder="Add a step…" className="flex-1 min-w-0 h-9 rounded-lg bg-sunken px-3 text-[14px] outline-none focus:ring-2 focus:ring-brand-2" />
-            <Button type="submit" size="sm" variant="secondary" icon="add" aria-label="Add step" disabled={!item.trim()} />
-          </form>
-          {list.length > 0 && (
-            <div className="mt-1">
-              <div className="flex justify-between text-[13px] font-semibold mb-1"><span className="text-fg-2 flex items-center gap-1"><Icon name="timer" className="text-[16px]" />Prep complete</span><span className="tnum">{pct}%</span></div>
-              <div className="h-2 rounded-full bg-sunken overflow-hidden"><div className="h-full bg-brand-2 rounded-full transition-all" style={{ width: `${pct}%` }} /></div>
-            </div>
-          )}
-        </Card>
-      </div>
     </div>
   );
 }

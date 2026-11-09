@@ -53,13 +53,21 @@ scripts/build-artifact.mjs   builds a single HTML file (used for the Claude-host
 - **events** — contactId, kind (`coffee` | `thankyou` | `followup`), start, durationMin, format, location/link, topic, status (`planned` | `done`), draft
 - **notes** — contactId, eventId?, date, headline, body, nextStep, kind (`debrief` | `prep` | `intro` | `note`), pinned
 
-## Deploy your own copy (Vercel)
+## AI setup (Groq, free tier)
 
-1. Push this folder to GitHub, import it in Vercel (framework: Vite).
-2. Environment variables: `ANTHROPIC_API_KEY` (from console.anthropic.com) and `VITE_AI_ENDPOINT=/api/ai`.
-3. Deploy. AI features now run through `api/ai.ts`; the key never reaches the browser.
+AI requests go from the browser to `/api/ai` (our own server code in `api/ai.ts`), which calls Groq with the key. The key never reaches the browser.
 
-To share data across devices, add Supabase: create the four tables above with a `user_id` column and row-level security, then write a `supabaseBackend()` in `store.tsx` with the same five methods as `localBackend()` (start, saveProfile, put, remove). Nothing else in the app needs to change.
+- **Local:** copy `.env.example` to `.env.local` and paste your key into `GROQ_API_KEY`. `npm run dev` serves `/api/ai` for you.
+- **Vercel:** Project → Settings → Environment Variables → add `GROQ_API_KEY` (Production + Preview), then redeploy.
+- **Model:** defaults to `openai/gpt-oss-120b`. Set `GROQ_MODEL` to try another model from console.groq.com/docs/models without code changes.
+- **Switching provider later** (OpenAI, Claude, Gemini): only `api/ai.ts` changes.
+
+## Deploy (Vercel)
+
+1. Import the GitHub repo in Vercel (framework: Vite). Vercel also deploys `api/ai.ts` as a serverless function.
+2. Add `GROQ_API_KEY` as above. Every push to `main` redeploys; every PR gets its own preview link.
+
+To share data across devices, add Supabase: create the four tables above with a `user_id` column and row-level security, then write a `supabaseBackend()` in `store.tsx` with the same methods as `localBackend()` (start, saveProfile, put, remove). Nothing else in the app needs to change.
 
 ## Suggested split (Sijie + Chloe)
 

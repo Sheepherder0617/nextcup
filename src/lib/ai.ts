@@ -40,6 +40,8 @@ async function viaEndpoint(input: string | Turn[], json: boolean, opts: Opts): P
     body: JSON.stringify({ messages: typeof input === "string" ? [{ role: "user", content: input }] : input, json }),
     signal: opts.signal,
   });
+  if (res.status === 429) throw { code: "rate_limited", message: "AI rate limit reached" } as AiError;
+  if (res.status === 503 || res.status === 404) throw { code: "unavailable", message: "AI endpoint not configured" } as AiError;
   if (!res.ok) throw { code: "upstream_error", message: `AI endpoint returned ${res.status}` } as AiError;
   const data = await res.json();
   if (json) {
@@ -80,7 +82,7 @@ export function aiErrorText(e: any): string {
     case "cancelled": return "";
     case "not_granted": case "sampling_disabled": case "not_declared": case "capability_disabled": case "capability_removed":
       return "AI is turned off for this page. Reload the page to be asked again.";
-    case "unavailable": return "AI isn’t connected here. Open NextCup inside Claude, or set an AI endpoint (see README).";
+    case "unavailable": return "AI isn’t set up yet. Add GROQ_API_KEY on the server (see README), then try again.";
     case "rate_limited": return "You’ve hit the AI usage limit for now. Try again in a little while.";
     case "session_expired": return "Your session expired. Sign in to Claude again, then retry.";
     case "refused": return "The assistant couldn’t help with that request. Try rephrasing it.";
@@ -218,11 +220,12 @@ It should sound natural when said out loud: who I am, what I’ve done that matt
 
 export async function extractSkills(resume: string, signal?: AbortSignal): Promise<string[]> {
   const prompt = `From this resume text, list the 6-10 most marketable skills as short tags (2-4 words each).
-Reply with only a JSON array of strings.
+Reply with only JSON in this shape: {"skills": ["..."]}
 
 ${resume.slice(0, 8000)}`;
   const r = await call(prompt, true, { signal, quick: true });
-  return Array.isArray(r) ? r.map(String).slice(0, 12) : [];
+  const list = Array.isArray(r) ? r : Array.isArray(r?.skills) ? r.skills : [];
+  return list.map(String).slice(0, 12);
 }
 
 export function assistantRules(c: Contact, p: Profile | null, notes: Note[], ev?: ChatEvent): string {

@@ -36,12 +36,14 @@ src/
   index.css            design tokens (light + dark) and Tailwind v4 theme
   lib/
     types.ts           data model: Profile, Contact, ChatEvent, Note
-    store.tsx          storage (Claude private store | localStorage) + React hooks
+    store.tsx          storage (Supabase | Claude private store | localStorage) + sign-in state
+    supabase.ts        Supabase client, access token for /api/ai, sign-in error messages
     ai.ts              every AI prompt + provider switch
     derive.ts          upcoming chats, due follow-ups, funnel numbers
     date.ts, files.ts  date helpers, .ics invites and file export
   components/          ui kit, logo, Log-a-chat modal, AI prep assistant, draft modal
-  pages/               one file per screen
+  pages/               one file per screen (Auth.tsx = sign in / create account)
+supabase/schema.sql    tables, privacy rules, AI usage counter, funnel view
 api/ai.ts              Vercel function that calls the Claude API with your key
 scripts/build-artifact.mjs   builds a single HTML file (used for the Claude-hosted preview)
 ```
@@ -53,13 +55,26 @@ scripts/build-artifact.mjs   builds a single HTML file (used for the Claude-host
 - **events** — contactId, kind (`coffee` | `thankyou` | `followup`), start, durationMin, format, location/link, topic, status (`planned` | `done`), draft
 - **notes** — contactId, eventId?, date, headline, body, nextStep, kind (`debrief` | `prep` | `intro` | `note`), pinned
 
-## Deploy your own copy (Vercel)
+## Accounts & database (Supabase)
 
-1. Push this folder to GitHub, import it in Vercel (framework: Vite).
-2. Environment variables: `ANTHROPIC_API_KEY` (from console.anthropic.com) and `VITE_AI_ENDPOINT=/api/ai`.
-3. Deploy. AI features now run through `api/ai.ts`; the key never reaches the browser.
+Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` and the app switches from browser storage to real accounts: people create an account with email + password, and their profile, contacts, events and notes are saved in Supabase, private to them (Row Level Security). Step-by-step: [docs/SUPABASE-SETUP.md](docs/SUPABASE-SETUP.md). Schema: [supabase/schema.sql](supabase/schema.sql).
 
-To share data across devices, add Supabase: create the four tables above with a `user_id` column and row-level security, then write a `supabaseBackend()` in `store.tsx` with the same five methods as `localBackend()` (start, saveProfile, put, remove). Nothing else in the app needs to change.
+Without those two variables the app still runs and saves to the browser, which is handy for quick UI work.
+
+## AI setup (Groq, free tier)
+
+AI requests go from the browser to `/api/ai` (our own server code in `api/ai.ts`), which calls Groq with the key. The key never reaches the browser.
+
+- **Local:** copy `.env.example` to `.env.local` and paste your key into `GROQ_API_KEY`. `npm run dev` serves `/api/ai` for you.
+- **Vercel:** Project → Settings → Environment Variables → add `GROQ_API_KEY` (Production + Preview), then redeploy.
+- **Who can call it:** when Supabase is configured, only signed-in users, up to `AI_DAILY_LIMIT` requests per person per day (default 40).
+- **Model:** defaults to `openai/gpt-oss-120b`. Set `GROQ_MODEL` to try another model from console.groq.com/docs/models without code changes.
+- **Switching provider later** (OpenAI, Claude, Gemini): only `api/ai.ts` changes.
+
+## Deploy (Vercel)
+
+1. Import the GitHub repo in Vercel (framework: Vite). Vercel also deploys `api/ai.ts` as a serverless function.
+2. Add `GROQ_API_KEY` as above. Every push to `main` redeploys; every PR gets its own preview link.
 
 ## Suggested split (Sijie + Chloe)
 

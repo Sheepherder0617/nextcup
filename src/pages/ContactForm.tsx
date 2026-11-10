@@ -152,7 +152,7 @@ export function ContactForm({ id }: { id?: string }) {
 
       <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-4">
         <p className="text-[13px] text-fg-3 inline-flex items-center gap-1.5"><Icon name="lock" className="text-[16px]" />
-          {store.mode === "cloud" ? "Private to you · synced to your NextCup workspace" : "Saved on this device"}</p>
+          {store.mode === "local" ? "Saved on this device" : "Private to you · synced to your NextCup account"}</p>
         <div className="flex flex-wrap gap-2">
           {existing && <Button variant="ghost" icon="delete" onClick={() => setConfirmDelete(true)} className="text-danger">Delete</Button>}
           <Button variant="secondary" onClick={() => (existing ? go("contact", existing.id) : go("contacts"))}>Cancel</Button>

@@ -1,19 +1,21 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { ChatEvent, Contact, Note, Profile, Snapshot } from "./types";
+import { getSupabase, supabaseEnabled } from "./supabase";
 
 /*
  * Storage layer.
  * - Inside Claude (published artifact): each person's data lives in the artifact's
  *   private per-user store at data/users/<their id>/…, so nobody else can read it.
- * - Anywhere else (local dev, your own hosting): browser localStorage.
- * Swap in Supabase later by writing one more Backend with the same five methods.
+ * - Own hosting with Supabase configured: each person signs in, and their rows live in
+ *   Supabase tables protected by Row Level Security (see supabase/schema.sql).
+ * - Neither (quick local tinkering): browser localStorage.
  */
 
 type Coll = "contacts" | "events" | "notes";
 type Item = Contact | ChatEvent | Note;
 
 interface Backend {
-  mode: "cloud" | "local";
+  mode: "cloud" | "supabase" | "local";
   start(onChange: (patch: Partial<Snapshot>) => void, onReady: () => void, onError: (msg: string) => void): () => void;
   saveProfile(p: Profile | null): Promise<void>;
   put(coll: Coll, item: Item): Promise<void>;
@@ -63,6 +65,49 @@ function cloudBackend(db: any, userId: string): Backend {
   };
 }
 
+function supabaseBackend(sb: any, userId: string): Backend {
+  const check = ({ error }: { error: any }) => { if (error) throw error; };
+  return {
+    mode: "supabase",
+    start(onChange, onReady, onError) {
+      let alive = true;
+      (async () => {
+        try {
+          const [p, c, e, n] = await Promise.all([
+            sb.from("profiles").select("data").maybeSingle(),
+            sb.from("contacts").select("data"),
+            sb.from("events").select("data"),
+            sb.from("notes").select("data"),
+          ]);
+          for (const r of [p, c, e, n]) check(r);
+          if (!alive) return;
+          onChange({
+            profile: (p.data?.data as Profile) ?? null,
+            contacts: (c.data ?? []).map((r: any) => r.data),
+            events: (e.data ?? []).map((r: any) => r.data),
+            notes: (n.data ?? []).map((r: any) => r.data),
+          });
+        } catch {
+          if (alive) onError("Couldn’t load your data. Check your connection and reload the page.");
+        } finally {
+          if (alive) onReady();
+        }
+      })();
+      return () => { alive = false; };
+    },
+    async saveProfile(p) {
+      if (p) check(await sb.from("profiles").upsert({ user_id: userId, data: clean(p), updated_at: new Date().toISOString() }));
+      else check(await sb.from("profiles").delete().eq("user_id", userId));
+    },
+    async put(coll, item) {
+      check(await sb.from(coll).upsert({ user_id: userId, id: item.id, data: clean(item), updated_at: new Date().toISOString() }, { onConflict: "user_id,id" }));
+    },
+    async remove(coll, id) {
+      check(await sb.from(coll).delete().eq("user_id", userId).eq("id", id));
+    },
+  };
+}
+
 const LS_KEY = "nextcup:v1";
 function localBackend(): Backend {
   let mem: Snapshot = { profile: null, contacts: [], events: [], notes: [] };
@@ -91,7 +136,17 @@ export interface Viewer { name: string; avatarUrl: string | null }
 
 interface StoreValue extends Snapshot {
   ready: boolean;
-  mode: "cloud" | "local" | "pending";
+  mode: "cloud" | "supabase" | "local" | "pending";
+  /** Account sign-in (only when Supabase is configured). */
+  auth: {
+    enabled: boolean;
+    signedIn: boolean;
+    email: string;
+    /** True after the person opened a password-reset link and must choose a new password. */
+    recovering: boolean;
+    updatePassword(password: string): Promise<void>;
+    signOut(): Promise<void>;
+  };
   viewer: Viewer;
   error: string | null;
   clearError(): void;
@@ -118,11 +173,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const snapRef = useRef(snap);
   snapRef.current = snap;
 
+  const [session, setSession] = useState<{ userId: string; email: string } | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [recovering, setRecovering] = useState(false);
+
+  // Decide where data lives: Claude's private store, Supabase (after sign-in), or this browser.
   useEffect(() => {
     let stop = () => {};
     let alive = true;
     (async () => {
-      let b: Backend | null = null;
       const claude = (window as any).claude;
       if (claude?.use) {
         try {
@@ -132,20 +191,72 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             if (alive) setViewer({ name: me?.name || "", avatarUrl: me?.name ? me.avatarUrl : null });
           }
           const id = user ? await user.id() : null;
-          if (db && id) b = cloudBackend(db, id);
-        } catch { /* fall back to local */ }
+          if (db && id && alive) {
+            const b = cloudBackend(db, id);
+            backend.current = b;
+            setMode(b.mode);
+            stop = b.start((patch) => setSnap((s) => ({ ...s, ...patch })), () => setReady(true), (msg) => setError(msg));
+            return;
+          }
+        } catch { /* fall through */ }
       }
       if (!alive) return;
-      b = b ?? localBackend();
+      if (supabaseEnabled) {
+        setMode("supabase");
+        try {
+          const sb = await getSupabase();
+          const { data } = await sb.auth.getSession();
+          const u = data?.session?.user;
+          if (alive) setSession(u ? { userId: u.id, email: u.email ?? "" } : null);
+          const { data: sub } = sb.auth.onAuthStateChange((event: string, s: any) => {
+            if (event === "PASSWORD_RECOVERY") setRecovering(true);
+            const nu = s?.user;
+            setSession((prev) => (nu ? (prev?.userId === nu.id ? prev : { userId: nu.id, email: nu.email ?? "" }) : null));
+          });
+          stop = () => sub?.subscription?.unsubscribe();
+        } catch {
+          if (alive) setError("Couldn’t reach the sign-in service. Check your connection and reload.");
+        } finally {
+          if (alive) setAuthChecked(true);
+        }
+        return;
+      }
+      const b = localBackend();
       backend.current = b;
       setMode(b.mode);
-      stop = b.start(
-        (patch) => setSnap((s) => ({ ...s, ...patch })),
-        () => setReady(true),
-        (msg) => setError(msg),
-      );
+      stop = b.start((patch) => setSnap((s) => ({ ...s, ...patch })), () => setReady(true), (msg) => setError(msg));
     })();
     return () => { alive = false; stop(); };
+  }, []);
+
+  // Supabase: (re)load the signed-in person's data whenever the account changes.
+  useEffect(() => {
+    if (mode !== "supabase" || !authChecked) return;
+    setSnap({ profile: null, contacts: [], events: [], notes: [] });
+    if (!session) { backend.current = null; setReady(true); return; }
+    setReady(false);
+    let stop = () => {};
+    let alive = true;
+    getSupabase().then((sb) => {
+      if (!alive) return;
+      const b = supabaseBackend(sb, session.userId);
+      backend.current = b;
+      stop = b.start((patch) => alive && setSnap((s) => ({ ...s, ...patch })), () => alive && setReady(true), (msg) => setError(msg));
+    });
+    return () => { alive = false; stop(); };
+  }, [mode, authChecked, session?.userId]);
+
+  const signOut = useCallback(async () => {
+    const sb = await getSupabase();
+    await sb?.auth.signOut();
+    setSession(null);
+  }, []);
+
+  const updatePassword = useCallback(async (password: string) => {
+    const sb = await getSupabase();
+    const { error } = await sb.auth.updateUser({ password });
+    if (error) throw error;
+    setRecovering(false);
   }, []);
 
   const run = useCallback(async (fn: (b: Backend) => Promise<void>) => {
@@ -167,6 +278,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ...snap,
       ready,
       mode,
+      auth: { enabled: mode === "supabase", signedIn: !!session, email: session?.email ?? "", recovering, updatePassword, signOut },
       viewer,
       error,
       clearError: () => setError(null),
@@ -201,7 +313,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       },
       contactById: (id) => snap.contacts.find((c) => c.id === id),
     };
-  }, [snap, ready, mode, viewer, error, run]);
+  }, [snap, ready, mode, viewer, error, run, session, signOut, recovering, updatePassword]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

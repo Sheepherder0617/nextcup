@@ -1,6 +1,7 @@
 import type { Contact, FollowUpIdeas, Note, PrepBrief, Profile, ChatEvent } from "./types";
 import { GOAL_LABEL, ROLE_LABEL, TONE_LABEL } from "./types";
 import { formatDate, todayISO } from "./date";
+import { getAccessToken } from "./supabase";
 
 /*
  * AI layer. Order of preference:
@@ -34,13 +35,20 @@ type Turn = { role: "user" | "assistant"; content: string };
 interface Opts { onText?: (text: string) => void; signal?: AbortSignal; quick?: boolean; fresh?: boolean }
 
 async function viaEndpoint(input: string | Turn[], json: boolean, opts: Opts): Promise<any> {
+  const token = await getAccessToken().catch(() => null);
   const res = await fetch(ENDPOINT, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...(token ? { authorization: `Bearer ${token}` } : {}) },
     body: JSON.stringify({ messages: typeof input === "string" ? [{ role: "user", content: input }] : input, json }),
     signal: opts.signal,
   });
-  if (!res.ok) throw { code: "upstream_error", message: `AI endpoint returned ${res.status}` } as AiError;
+  if (!res.ok) {
+    const code = await res.json().then((b: any) => b?.error as string | undefined).catch(() => undefined);
+    if (res.status === 429) throw { code: code === "daily_limit" ? "daily_limit" : "rate_limited", message: "AI limit reached" } as AiError;
+    if (res.status === 401) throw { code: "session_expired", message: "Sign in again" } as AiError;
+    if (res.status === 503 || res.status === 404) throw { code: "unavailable", message: "AI endpoint not configured" } as AiError;
+    throw { code: "upstream_error", message: `AI endpoint returned ${res.status}` } as AiError;
+  }
   const data = await res.json();
   if (json) {
     const t: string = data.text ?? "";
@@ -80,9 +88,10 @@ export function aiErrorText(e: any): string {
     case "cancelled": return "";
     case "not_granted": case "sampling_disabled": case "not_declared": case "capability_disabled": case "capability_removed":
       return "AI is turned off for this page. Reload the page to be asked again.";
-    case "unavailable": return "AI isn’t connected here. Open NextCup inside Claude, or set an AI endpoint (see README).";
+    case "unavailable": return "AI isn’t set up yet. Add GROQ_API_KEY on the server (see README), then try again.";
     case "rate_limited": return "You’ve hit the AI usage limit for now. Try again in a little while.";
-    case "session_expired": return "Your session expired. Sign in to Claude again, then retry.";
+    case "session_expired": return "Your session expired. Sign out and sign in again, then retry.";
+    case "daily_limit": return "You’ve used today’s AI requests. They reset tomorrow; everything else keeps working.";
     case "refused": return "The assistant couldn’t help with that request. Try rephrasing it.";
     case "invalid_json": return "The answer came back in an unexpected shape. Try again.";
     case "prompt_too_large": return "There’s too much text to send at once. Shorten your notes and try again.";
@@ -218,11 +227,12 @@ It should sound natural when said out loud: who I am, what I’ve done that matt
 
 export async function extractSkills(resume: string, signal?: AbortSignal): Promise<string[]> {
   const prompt = `From this resume text, list the 6-10 most marketable skills as short tags (2-4 words each).
-Reply with only a JSON array of strings.
+Reply with only JSON in this shape: {"skills": ["..."]}
 
 ${resume.slice(0, 8000)}`;
   const r = await call(prompt, true, { signal, quick: true });
-  return Array.isArray(r) ? r.map(String).slice(0, 12) : [];
+  const list = Array.isArray(r) ? r : Array.isArray(r?.skills) ? r.skills : [];
+  return list.map(String).slice(0, 12);
 }
 
 export function assistantRules(c: Contact, p: Profile | null, notes: Note[], ev?: ChatEvent): string {

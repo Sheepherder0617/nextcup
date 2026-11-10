@@ -14,6 +14,7 @@ import { ContactProfile } from "./pages/ContactProfile";
 import { CalendarPage } from "./pages/Calendar";
 import { Schedule } from "./pages/Schedule";
 import { ProfilePage } from "./pages/Profile";
+import { AuthPage } from "./pages/Auth";
 
 // ---------- Hash router (plain "#name" or "#name-param") ----------
 const PARAM_ROUTES: RouteName[] = ["contact", "edit", "schedule"];
@@ -61,10 +62,18 @@ function Shell() {
     );
   }
 
+  // Accounts (Supabase): signed-out visitors see the landing page or the sign-in page.
+  const { auth } = store;
+  if (auth.recovering) return <NavCtx.Provider value={nav}><AuthPage /></NavCtx.Provider>;
+  if (auth.enabled && !auth.signedIn) {
+    return <NavCtx.Provider value={nav}>{!route.name || route.name === "welcome" ? <Landing /> : <AuthPage />}</NavCtx.Provider>;
+  }
+
   // Default route
   let name = route.name;
-  if (!name) name = store.profile ? "dashboard" : "welcome";
-  if (!store.profile && !["welcome", "signup"].includes(name)) name = "welcome";
+  if (!name) name = store.profile ? "dashboard" : auth.enabled ? "signup" : "welcome";
+  if (!store.profile && !["welcome", "signup"].includes(name)) name = auth.enabled ? "signup" : "welcome";
+  if (store.profile && auth.enabled && name === "signup") name = "dashboard";
 
   if (name === "welcome") return <NavCtx.Provider value={nav}><Landing /></NavCtx.Provider>;
   if (name === "signup") return <NavCtx.Provider value={nav}><Onboarding /></NavCtx.Provider>;

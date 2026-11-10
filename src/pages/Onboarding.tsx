@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useStore } from "../lib/store";
 import { useNav } from "../lib/nav";
-import { Button, Card, Icon, Input, Label, useToast } from "../components/ui";
+import { Avatar, Button, Card, Icon, Input, Label, useToast } from "../components/ui";
 import { Wordmark } from "../components/Logo";
 import { extractResumeText } from "../lib/resume";
 import type { Profile } from "../lib/types";
@@ -9,7 +9,6 @@ import type { Profile } from "../lib/types";
 const splitList = (s: string) => s.split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
 
 export function Onboarding() {
-  const { saveProfile, viewer, profile } = useStore();
   const { saveProfile, viewer, mode, profile, auth } = useStore();
   const { go } = useNav();
   const toast = useToast();

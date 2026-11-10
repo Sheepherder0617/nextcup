@@ -362,7 +362,7 @@ function IdeasPanel({ c, notes }: { c: Contact; notes: Note[] }) {
 
 function PrepPanel({ c, notes, next }: { c: Contact; notes: Note[]; next?: ChatEvent }) {
   const store = useStore();
-  const { go, openPrep } = useNav();
+  const { openPrep } = useNav();
   const aiOk = useAi();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");

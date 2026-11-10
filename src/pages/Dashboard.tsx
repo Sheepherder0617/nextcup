@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { useStore } from "../lib/store";
 import { useNav } from "../lib/nav";
-import { Avatar, Button, Card, Chip, Icon, cx } from "../components/ui";
+import { Avatar, Button, Card, Chip, Icon } from "../components/ui";
 import { dueTasks, inThisWeek, needsDebrief, upcomingChats } from "../lib/derive";
 import { formatTime, greeting, parseLocal, relativeDay, timeRange } from "../lib/date";
 import { FORMAT_LABEL } from "../lib/types";

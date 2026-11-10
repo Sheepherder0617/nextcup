@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 import { useStore } from "../lib/store";
 import { useNav } from "../lib/nav";
-import { Button, Card, Chip, Empty, Icon, Modal, Select, cx, useToast } from "../components/ui";
+import { Button, Card, Chip, Empty, Icon, Input, Label, Modal, Select, cx, useToast } from "../components/ui";
 import { DraftModal } from "../components/DraftModal";
 import { RoleChips } from "../components/bits";
 import { byStart, isFirstMeet, isOverdue } from "../lib/derive";
 import { addDays, formatMonth, fromNow, parseLocal, relativeDay, timeRange, todayISO, formatShort } from "../lib/date";
-import { FORMAT_ICON, GOAL_LABEL, KIND_ICON, KIND_LABEL, type ChatEvent, type EventKind } from "../lib/types";
+import { FORMAT_ICON, FORMAT_LABEL, GOAL_LABEL, KIND_ICON, KIND_LABEL, type ChatEvent, type EventKind, type Format } from "../lib/types";
 import { eventToIcs, saveFile } from "../lib/files";
 
 type Range = "upcoming" | "past" | "all";
@@ -21,6 +21,7 @@ export function CalendarPage() {
   const [month, setMonth] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1); });
   const [draftId, setDraftId] = useState<string | null>(null);
   const [del, setDel] = useState<ChatEvent | null>(null);
+  const [editEvent, setEditEvent] = useState<ChatEvent | null>(null);
   const [delNotes, setDelNotes] = useState(false);
 
   // "Upcoming" = still to do (including overdue tasks); "Past" = done.
@@ -62,9 +63,9 @@ export function CalendarPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="font-serif text-[36px] md:text-[44px] font-semibold leading-tight">NextCup Calendar</h1>
-          <p className="text-fg-2 text-[17px] max-w-[60ch]">Every coffee chat, thank-you note and follow-up in one timeline, built automatically from your contacts and debriefs.</p>
+          <p className="text-fg-2 text-[17px] max-w-[60ch]">Every coffee chat, thank-you note and follow-up in one timeline.</p>
         </div>
-        <Button variant="primary" icon="add_circle" onClick={() => go("schedule")} className="self-start md:self-auto">Schedule Coffee Chat</Button>
+        <Button variant="primary" icon="add_circle" onClick={() => go("schedule")} className="self-start md:self-auto">Schedule Event</Button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] items-start">
@@ -102,8 +103,8 @@ export function CalendarPage() {
 
           {groups.length === 0 ? (
             <Card><Empty icon="event_busy" title={range === "past" ? "No past events yet" : "Nothing on the calendar"}
-              action={<Button variant="primary" icon="event_available" onClick={() => go("schedule")}>Schedule a coffee chat</Button>}>
-              {range === "past" ? "Log a chat after it happens and it shows up here." : "Schedule a chat, or log one that already happened and NextCup will plan your follow-ups."}
+              action={<Button variant="primary" icon="event_available" onClick={() => go("schedule")}>Schedule an event</Button>}>
+              {range === "past" ? "Log a chat after it happens and it shows up here." : "Schedule an event, or log one that already happened to add it to your calendar."}
             </Empty></Card>
           ) : groups.map(([d, evs]) => (
             <section key={d} className="flex flex-col gap-3" aria-label={relativeDay(d)}>
@@ -113,21 +114,22 @@ export function CalendarPage() {
               </h2>
               {evs.map((e) => <EventCard key={e.id} e={e} first={isFirstMeet(e, store.events)}
                 onPrep={() => openPrep(e.contactId, e.id)} onLog={() => openLog({ eventId: e.id })} onDraft={() => setDraftId(e.id)}
-                onDone={() => markDone(e)} onDelete={() => setDel(e)} onOpen={() => go("contact", e.contactId)} />)}
+                onDone={() => markDone(e)} onEdit={() => setEditEvent(e)} onDelete={() => setDel(e)} onOpen={() => go("contact", e.contactId)} />)}
             </section>
           ))}
         </div>
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-24">
           <MiniMonth month={month} setMonth={setMonth} events={store.events} selected={day} onPick={(d) => { setDay(d === day ? null : d); setRange("all"); }} />
-          <Card className="p-4 bg-card-2">
-            <p className="font-semibold flex items-center gap-2"><Icon name="tips_and_updates" className="text-brand" />First Meet Tip</p>
-            <p className="text-[14px] text-fg-2 mt-1">In a first coffee chat, spend the first five minutes listening to their career story before you share your own pitch.</p>
-          </Card>
         </aside>
       </div>
 
       <DraftModal eventId={draftId} onClose={() => setDraftId(null)} />
+      {editEvent && <EditCoffeeChatModal key={editEvent.id} event={editEvent} onClose={() => setEditEvent(null)} onSave={async (updated) => {
+        await store.upsertEvent(updated);
+        toast("Coffee chat updated");
+        setEditEvent(null);
+      }} />}
       <Modal open={!!del} onClose={() => setDel(null)} labelledBy="del-ev" title="Delete scheduled event?"
         footer={<><Button variant="secondary" onClick={() => setDel(null)}>Cancel</Button><Button variant="danger" icon="delete" onClick={confirmDelete}>Delete event</Button></>}>
         {del && <div className="flex flex-col gap-4">
@@ -142,9 +144,10 @@ export function CalendarPage() {
   );
 }
 
-function EventCard({ e, first, onPrep, onLog, onDraft, onDone, onDelete, onOpen }:
-  { e: ChatEvent; first: boolean; onPrep: () => void; onLog: () => void; onDraft: () => void; onDone: () => void; onDelete: () => void; onOpen: () => void }) {
+function EventCard({ e, first, onPrep, onLog, onDraft, onDone, onEdit, onDelete, onOpen }:
+  { e: ChatEvent; first: boolean; onPrep: () => void; onLog: () => void; onDraft: () => void; onDone: () => void; onEdit: () => void; onDelete: () => void; onOpen: () => void }) {
   const store = useStore();
+  const [actionsOpen, setActionsOpen] = useState(false);
   const c = store.contactById(e.contactId);
   if (!c) return null;
   const overdue = isOverdue(e);
@@ -152,13 +155,14 @@ function EventCard({ e, first, onPrep, onLog, onDraft, onDone, onDelete, onOpen 
   return (
     <Card className={cx("p-4 md:p-5 flex flex-col gap-3", e.status === "done" && "opacity-80")}>
       <div className="flex flex-wrap items-center gap-2">
-        <Chip tone={e.kind === "coffee" ? "peach" : e.kind === "thankyou" ? "sand" : "blue"} icon={KIND_ICON[e.kind]}>{KIND_LABEL[e.kind]}</Chip>
+        <Chip tone={e.kind === "coffee" ? "peach" : e.kind === "thankyou" ? "neutral" : "blue"} icon={KIND_ICON[e.kind]}>{KIND_LABEL[e.kind]}</Chip>
         {first && e.kind === "coffee" && <Chip tone="ink" icon="star">First Meet</Chip>}
         {e.status === "done" && <Chip tone="blue" icon="check">Done</Chip>}
         {overdue && <Chip tone="danger">Overdue</Chip>}
       </div>
       <div className="flex flex-wrap items-baseline gap-x-2">
         <button type="button" onClick={onOpen} className="text-[18px] font-bold hover:text-brand">{c.name}</button>
+        {e.title && <span className="text-fg-2">· {e.title}</span>}
         {(c.title || c.company) && <span className="text-fg-2">• {c.title}{c.title && c.company ? ", " : ""}{c.company}</span>}
       </div>
       <div className="flex flex-col gap-1 text-[14px] text-fg-2">
@@ -171,7 +175,7 @@ function EventCard({ e, first, onPrep, onLog, onDraft, onDone, onDelete, onOpen 
       <div className="flex flex-wrap gap-2 pt-3 border-t border-line">
         {e.kind === "coffee" && e.status === "planned" && <>
           {!past && <Button size="sm" variant="ai" icon="psychology" onClick={onPrep}>Coffee Chat AI Prep</Button>}
-          <Button size="sm" variant={past ? "primary" : "secondary"} icon="edit_note" onClick={onLog}>Post Meeting Note</Button>
+          <Button size="sm" variant={past ? "primary" : "secondary"} icon="edit_note" onClick={onLog}>Log a Chat</Button>
           {!past && <Button size="sm" variant="ghost" icon="event" onClick={() => saveFile(`coffee-chat-${c.name.split(" ")[0].toLowerCase()}.ics`, eventToIcs(e, c), "text/calendar")}>.ics</Button>}
         </>}
         {e.kind !== "coffee" && e.status === "planned" && <>
@@ -179,9 +183,73 @@ function EventCard({ e, first, onPrep, onLog, onDraft, onDone, onDelete, onOpen 
           <Button size="sm" variant="ghost" icon="check" onClick={onDone}>Mark done</Button>
         </>}
         {e.status === "done" && <Button size="sm" variant="ghost" icon="description" onClick={onOpen}>View in profile</Button>}
-        <Button size="sm" variant="ghost" icon="delete" onClick={onDelete} className="ml-auto text-fg-3" aria-label="Delete event">Delete</Button>
+        <div className="relative ml-auto">
+          <Button size="sm" variant="ghost" icon="more_vert" onClick={() => setActionsOpen((open) => !open)} className="text-fg-3"
+            aria-label="Event actions" aria-haspopup="menu" aria-expanded={actionsOpen} title="Event actions" />
+          {actionsOpen && <div role="menu" className="absolute right-0 bottom-full z-20 mb-1 min-w-44 rounded-lg border border-line bg-card p-1 shadow-lift">
+            {e.kind === "coffee" && <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); onEdit(); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-semibold hover:bg-card-2"><Icon name="edit" className="text-[18px]" />Edit coffee chat</button>}
+            <button type="button" role="menuitem" onClick={() => { setActionsOpen(false); onDelete(); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-semibold text-danger hover:bg-danger-soft"><Icon name="delete" className="text-[18px]" />Delete event</button>
+          </div>}
+        </div>
       </div>
     </Card>
+  );
+}
+
+function EditCoffeeChatModal({ event, onClose, onSave }: { event: ChatEvent; onClose: () => void; onSave: (event: ChatEvent) => Promise<void> }) {
+  const [date, setDate] = useState(event.start.slice(0, 10));
+  const [time, setTime] = useState(event.start.slice(11, 16));
+  const [duration, setDuration] = useState(event.durationMin);
+  const [format, setFormat] = useState<Format>(event.format ?? "video");
+  const [title, setTitle] = useState(event.title ?? event.topic ?? "");
+  const [link, setLink] = useState(event.link ?? "");
+  const [location, setLocation] = useState(event.location ?? "");
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    if (!title.trim() || !date || !time) return;
+    setBusy(true);
+    try {
+      await onSave({
+        ...event,
+        start: `${date}T${time}`,
+        durationMin: duration,
+        format,
+        title: title.trim(),
+        link: format === "video" ? link.trim() || undefined : undefined,
+        location: format === "video" ? undefined : location.trim() || undefined,
+      });
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <Modal open onClose={onClose} wide title="Edit coffee chat" labelledBy="edit-coffee-title"
+      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button variant="primary" icon="check" onClick={save} disabled={busy || !title.trim() || !date || !time}>{busy ? "Saving…" : "Save changes"}</Button></>}>
+      <div className="flex flex-col gap-4">
+        <div><Label htmlFor="edit-coffee-name" hint="Required">Title</Label><Input id="edit-coffee-name" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div><Label htmlFor="edit-coffee-date">Date</Label><Input id="edit-coffee-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required /></div>
+          <div><Label htmlFor="edit-coffee-time">Time</Label><Input id="edit-coffee-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} required /></div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div><Label htmlFor="edit-coffee-format">Format</Label>
+            <Select id="edit-coffee-format" value={format} onChange={(e) => setFormat(e.target.value as Format)}>
+              {(Object.keys(FORMAT_LABEL) as Format[]).map((item) => <option key={item} value={item}>{FORMAT_LABEL[item]}</option>)}
+            </Select>
+          </div>
+          <div><Label htmlFor="edit-coffee-duration">Duration</Label>
+            <Select id="edit-coffee-duration" value={duration} onChange={(e) => setDuration(Number(e.target.value))}>
+              {[15, 30, 45, 60].map((mins) => <option key={mins} value={mins}>{mins} minutes</option>)}
+            </Select>
+          </div>
+        </div>
+        {format === "video" ? (
+          <div><Label htmlFor="edit-coffee-link" hint="Optional">Meeting link</Label><Input id="edit-coffee-link" type="url" value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://meet.google.com/…" /></div>
+        ) : (
+          <div><Label htmlFor="edit-coffee-location" hint="Optional">{format === "inperson" ? "Location" : "Phone number"}</Label><Input id="edit-coffee-location" value={location} onChange={(e) => setLocation(e.target.value)} /></div>
+        )}
+      </div>
+    </Modal>
   );
 }
 
@@ -226,7 +294,7 @@ function MiniMonth({ month, setMonth, events, selected, onPick }: { month: Date;
         <ul className="mt-4 pt-3 border-t border-line flex flex-col gap-1.5 text-[13px]">
           {monthEvents.slice(0, 5).map((e) => (
             <li key={e.id} className="flex items-center gap-2"><span className={cx("w-2 h-2 rounded-full", e.status === "done" ? "bg-blue" : "bg-brand")} />
-              <span className="font-semibold tnum">{formatShort(e.start)}</span><span className="text-fg-2 truncate">{store.contactById(e.contactId)?.name}</span></li>
+              <span className="font-semibold tnum">{formatShort(e.start)}</span><span className="text-fg-2 truncate">{[store.contactById(e.contactId)?.name, e.title].filter(Boolean).join(" · ")}</span></li>
           ))}
         </ul>
       )}

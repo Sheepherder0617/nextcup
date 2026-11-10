@@ -13,9 +13,15 @@ export function ContactForm({ id }: { id?: string }) {
   const { go } = useNav();
   const toast = useToast();
   const existing = id ? store.contactById(id) : undefined;
-  const [f, setF] = useState<Contact>(() => existing ?? {
+  const [f, setF] = useState<Contact>(() => existing ? {
+    ...existing,
+    firstMeetingDate: existing.firstMeetingDate ?? store.events
+      .filter((e) => e.contactId === existing.id && e.kind === "coffee" && e.status === "done")
+      .map((e) => e.start.slice(0, 10))
+      .sort()[0] ?? existing.lastContact,
+  } : {
     id: uid("c"), name: "", title: "", company: "", roleTypes: [], school: "", metVia: "event", metAt: "",
-    lastContact: todayISO(), goals: ["career_exploration", "advice"], notes: "", linkedin: "", email: "",
+    firstMeetingDate: todayISO(), goals: ["career_exploration", "advice"], notes: "", linkedin: "", email: "",
     createdAt: "", updatedAt: "",
   });
   const [busy, setBusy] = useState(false);
@@ -34,7 +40,8 @@ export function ContactForm({ id }: { id?: string }) {
     const c: Contact = {
       ...f, name: f.name.trim(), title: f.title.trim(), company: f.company.trim(), metAt: f.metAt.trim(),
       school: f.school?.trim() || undefined, linkedin: f.linkedin?.trim() || undefined, email: f.email?.trim() || undefined,
-      lastContact: f.lastContact || undefined, createdAt: f.createdAt || now, updatedAt: now,
+      firstMeetingDate: f.firstMeetingDate || undefined, lastContact: f.lastContact || undefined,
+      createdAt: f.createdAt || now, updatedAt: now,
     };
     try {
       await store.upsertContact(c);
@@ -60,7 +67,6 @@ export function ContactForm({ id }: { id?: string }) {
           <p className="text-fg-2 text-[17px]">Log connection details before your chat and capture key takeaways after.</p>
         </div>
         <span className="self-start md:self-auto inline-flex items-center gap-2 rounded-full bg-card border border-line px-4 py-2 text-sm font-semibold shadow-soft">
-          <span className="w-2.5 h-2.5 rounded-full bg-peach border border-brand-2" />2-Stage Lifecycle Tracker
         </span>
       </div>
 
@@ -69,13 +75,8 @@ export function ContactForm({ id }: { id?: string }) {
           <div className="flex items-center gap-4">
             <span className="grid place-items-center w-12 h-12 rounded-xl bg-ink text-on-ink font-serif text-[22px] font-semibold">01</span>
             <div>
-              <p className="text-[12px] font-bold text-fg-3"><Chip tone="peach">MILESTONE 1</Chip> · PREPARATION PHASE</p>
-              <h2 className="font-serif text-[24px] font-semibold mt-1">Before Meeting</h2>
+              <h2 className="font-serif text-[24px] font-semibold mt-1">Contact Information</h2>
             </div>
-          </div>
-          <div className="hidden sm:block text-right">
-            <p className="label-caps text-fg-3">Target readiness</p>
-            <p className="font-bold text-[18px]">Context & Research</p>
           </div>
         </div>
 
@@ -108,7 +109,7 @@ export function ContactForm({ id }: { id?: string }) {
             <div>
               <Label>Meeting context</Label>
               <div className="grid sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Meeting context">
-                {([["event", "Met at event", "In-person summits, fairs, conferences", "campaign"], ["online", "Met online", "LinkedIn, cold email, intro", "language"]] as const).map(([v, t, d, ic]) => (
+                {([["event", "Met at event", "In-person summits, fairs, conferences", "campaign"], ["online", "Met online", "LinkedIn, cold email", "language"]] as const).map(([v, t, d, ic]) => (
                   <button key={v} type="button" role="radio" aria-checked={f.metVia === v} onClick={() => set("metVia", v)}
                     className={cx("text-left rounded-xl p-4 border transition flex gap-3", f.metVia === v ? "bg-card-2 border-brand-2" : "bg-sunken border-transparent hover:border-line-2")}>
                     <Icon name={f.metVia === v ? "radio_button_checked" : "radio_button_unchecked"} className={cx("text-[20px]", f.metVia === v ? "text-brand" : "text-fg-3")} />
@@ -118,10 +119,10 @@ export function ContactForm({ id }: { id?: string }) {
               </div>
               <div className="mt-3"><label htmlFor="cf-metat" className="sr-only">Where you met</label>
                 <Input id="cf-metat" icon={f.metVia === "event" ? "account_balance" : "link"} value={f.metAt} onChange={(e) => set("metAt", e.target.value)}
-                  placeholder={f.metVia === "event" ? "Rotman Tech Career Expo 2026" : "LinkedIn intro from a classmate"} /></div>
+                  placeholder={f.metVia === "event" ? "Rotman Tech Career Expo 2026" : "Introduced myself on LinkedIn"} /></div>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              <div><Label htmlFor="cf-last">Last contact date</Label><Input id="cf-last" type="date" value={f.lastContact ?? ""} onChange={(e) => set("lastContact", e.target.value)} /></div>
+              <div><Label htmlFor="cf-first-meeting">First meeting date</Label><Input id="cf-first-meeting" type="date" value={f.firstMeetingDate ?? ""} onChange={(e) => set("firstMeetingDate", e.target.value)} /></div>
               <div><Label htmlFor="cf-email" hint="Optional">Email</Label><Input id="cf-email" type="email" icon="mail" value={f.email ?? ""} onChange={(e) => set("email", e.target.value)} placeholder="name@company.com" /></div>
             </div>
             <div><Label htmlFor="cf-li" hint="Optional">LinkedIn URL</Label><Input id="cf-li" type="url" icon="link" value={f.linkedin ?? ""} onChange={(e) => set("linkedin", e.target.value)} placeholder="https://www.linkedin.com/in/…" /></div>

@@ -12,6 +12,7 @@
     "build:artifact": "node scripts/build-artifact.mjs"
   },
   "dependencies": {
+    "pdfjs-dist": "^4.10.38",
     "@supabase/supabase-js": "^2.49.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

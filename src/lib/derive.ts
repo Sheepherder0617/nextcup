@@ -1,4 +1,4 @@
-import type { ChatEvent, Contact, Note } from "./types";
+import type { ChatEvent, Contact } from "./types";
 import { addDays, parseLocal, startOfDay, todayISO } from "./date";
 
 export const byStart = (a: ChatEvent, b: ChatEvent) => a.start.localeCompare(b.start);
@@ -30,10 +30,9 @@ export function needsDebrief(events: ChatEvent[], now = new Date()): ChatEvent[]
   return events.filter((e) => e.kind === "coffee" && e.status === "planned" && parseLocal(e.start).getTime() + e.durationMin * 60000 < now.getTime()).sort(byStart);
 }
 
-export function lastContactOf(c: Contact, events: ChatEvent[], notes: Note[]): string | undefined {
-  const dates = [c.lastContact]
+export function lastContactOf(c: Contact, events: ChatEvent[]): string | undefined {
+  const dates = [c.firstMeetingDate, c.lastContact]
     .concat(events.filter((e) => e.contactId === c.id && e.status === "done").map((e) => e.start.slice(0, 10)))
-    .concat(notes.filter((n) => n.contactId === c.id && n.kind !== "prep").map((n) => n.date))
     .filter((d): d is string => !!d && d <= todayISO());
   return dates.sort().pop();
 }

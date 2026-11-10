@@ -108,7 +108,7 @@ const LINKS: { name: RouteName; label: string; icon: string }[] = [
   { name: "contacts", label: "Contacts", icon: "group" },
   { name: "calendar", label: "Calendar", icon: "calendar_month" },
   { name: "add-contact", label: "Add Contact", icon: "person_add" },
-  { name: "schedule", label: "Schedule Coffee Chat", icon: "event_available" },
+  { name: "schedule", label: "Schedule Event", icon: "event_available" },
 ];
 
 function isActive(link: RouteName, active: RouteName) {

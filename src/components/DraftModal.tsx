@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useStore } from "../lib/store";
 import { Button, Icon, Label, Modal, TextArea, Thinking, copyText, useToast } from "./ui";
 import { aiAvailable, aiErrorText, draftThankYou, templateThankYou } from "../lib/ai";
-import { fromNow, todayISO } from "../lib/date";
-import type { ChatEvent } from "../lib/types";
+import { fromNow, todayISO, uid } from "../lib/date";
+import type { ChatEvent, Note } from "../lib/types";
 
 /** Write and send-off a thank-you or follow-up message for a planned task. */
 export function DraftModal({ eventId, onClose }: { eventId: string | null; onClose: () => void }) {
@@ -52,10 +52,19 @@ export function DraftModal({ eventId, onClose }: { eventId: string | null; onClo
   }
   async function markSent() {
     if (!ev || !c) return;
+    const now = new Date().toISOString();
+    const sentDate = todayISO();
     const done: ChatEvent = { ...ev, draft: text, status: "done" };
     await store.upsertEvent(done);
-    const today = todayISO();
-    if (!c.lastContact || c.lastContact < today) await store.upsertContact({ ...c, lastContact: today, updatedAt: new Date().toISOString() });
+    if (!c.lastContact || c.lastContact < sentDate) await store.upsertContact({ ...c, lastContact: sentDate, updatedAt: now });
+    const sentKind: Note["kind"] = ev.kind === "followup" ? "followup_message" : "note";
+    const existingLog = store.notes.find((n) => n.eventId === ev.id && (n.kind === "note" || n.kind === "followup_message"));
+    const sentNote: Note = {
+      id: existingLog?.id ?? uid("n"), contactId: c.id, eventId: ev.id, date: sentDate,
+      headline: ev.title?.trim() || ev.topic?.trim() || (ev.kind === "thankyou" ? "Thank-you message sent" : "Follow-up message sent"),
+      body: text.trim(), kind: sentKind, createdAt: existingLog?.createdAt ?? now,
+    };
+    await store.upsertNote(sentNote);
     toast(ev.kind === "thankyou" ? "Thank-you marked as sent" : "Follow-up marked as done");
     onClose();
   }
@@ -70,7 +79,7 @@ export function DraftModal({ eventId, onClose }: { eventId: string | null; onClo
       footer={<>
         <Button variant="ghost" onClick={saveDraft}>Save draft</Button>
         <Button variant="secondary" icon="content_copy" onClick={copy} disabled={!text.trim()}>Copy</Button>
-        <Button variant="primary" icon="send" onClick={markSent}>Mark as sent</Button>
+        <Button variant="primary" icon="send" onClick={markSent} disabled={!text.trim()}>Mark as sent</Button>
       </>}>
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-fg-2">
@@ -80,7 +89,7 @@ export function DraftModal({ eventId, onClose }: { eventId: string | null; onClo
         </div>
         {lastDebrief && (
           <div className="rounded-xl bg-card-2 border border-line p-3 text-[13px]">
-            <p className="label-caps text-fg-3 mb-1">From your debrief</p>
+            <p className="label-caps text-fg-3 mb-1">From your meeting</p>
             <p className="font-semibold">{lastDebrief.headline}</p>
             {lastDebrief.nextStep && <p className="text-fg-2 mt-0.5">Next step: {lastDebrief.nextStep}</p>}
           </div>

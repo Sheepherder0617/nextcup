@@ -5,7 +5,7 @@ export type RoleType = "recruiter" | "professional" | "former_manager" | "mentor
 export type Goal = "career_exploration" | "advice" | "relationship" | "job_opportunities";
 export type EventKind = "coffee" | "thankyou" | "followup";
 export type Format = "video" | "inperson" | "phone";
-export type NoteKind = "debrief" | "prep" | "intro" | "note";
+export type NoteKind = "debrief" | "prep" | "intro" | "note" | "followup_response" | "followup_message";
 export type Tone = "curious" | "warm" | "direct";
 
 export interface PrepBrief {
@@ -34,6 +34,7 @@ export interface Contact {
   school?: string;
   metVia: "event" | "online";
   metAt: string;
+  firstMeetingDate?: string; // YYYY-MM-DD
   lastContact?: string; // YYYY-MM-DD
   goals: Goal[];
   notes: string; // background / research
@@ -55,6 +56,7 @@ export interface ChatEvent {
   format?: Format;
   location?: string;
   link?: string;
+  title?: string;
   topic?: string;
   status: "planned" | "done";
   draft?: string; // AI or hand-written thank-you / follow-up message

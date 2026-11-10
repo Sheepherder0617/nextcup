@@ -1,12 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "../lib/store";
-import { useNav } from "../lib/nav";
 import { Avatar, Button, Card, Chip, Icon, Input, Label, Modal, Segmented, Select, TextArea, Thinking, cx, useToast } from "../components/ui";
-import { aiAvailable, aiErrorText, extractSkills, refinePitch } from "../lib/ai";
+import { aiAvailable, aiErrorText, extractSkills } from "../lib/ai";
 import { timezoneLabel } from "../lib/date";
-import { saveFile } from "../lib/files";
-import { upcomingChats } from "../lib/derive";
-import { TONE_LABEL, type Profile, type Tone } from "../lib/types";
+import { extractResumeText } from "../lib/resume";
+import { type Profile } from "../lib/types";
 
 type Tab = "overview" | "resume" | "ai" | "privacy";
 
@@ -40,7 +38,7 @@ export function ProfilePage() {
       </Card>
 
       <div role="tablist" aria-label="Profile sections" className="flex gap-2 overflow-x-auto pb-1 border-b border-line">
-        {([["overview", "Overview & Goals"], ["resume", "Resume & Background"], ["ai", "AI Assistant Preferences"], ["privacy", "Privacy & Data"]] as const).map(([k, l]) => (
+        {([["overview", "Overview & Goals"], ["resume", "Resume & Background"], ["privacy", "Appearance"]] as const).map(([k, l]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
             className={cx("h-10 px-4 rounded-lg text-sm font-semibold whitespace-nowrap border mb-2", tab === k ? "bg-ink text-on-ink border-transparent" : "bg-card border-line text-fg-2 hover:bg-card-2")}>{l}</button>
         ))}
@@ -48,7 +46,6 @@ export function ProfilePage() {
 
       {tab === "overview" && <Overview p={p} save={save} />}
       {tab === "resume" && <Resume p={p} save={save} />}
-      {tab === "ai" && <AiPrefs p={p} save={save} />}
       {tab === "privacy" && <Privacy />}
       <EditModal open={editing} p={p} onClose={() => setEditing(false)} onSave={async (x) => { await save(x); setEditing(false); }} />
     </div>
@@ -76,88 +73,19 @@ function ListEditor({ id, label, items, onChange, placeholder, tone = "sand" }: 
   );
 }
 
-const PITCH_LEN = { s30: "30 sec", s60: "1 min", s120: "2 min" } as const;
-const PITCH_USE = { s30: "Career fairs, elevator moments, the first line of a chat", s60: "Opening a coffee chat or info session", s120: "Interviews and longer chats where they ask “tell me about yourself”" } as const;
-
 function Overview({ p, save }: { p: Profile; save: (x: Partial<Profile>) => Promise<void> }) {
-  const store = useStore();
-  const toast = useToast();
-  const [len, setLen] = useState<keyof typeof PITCH_LEN>("s30");
-  const [text, setText] = useState(p.pitches[len]);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
-  const [aiOk, setAiOk] = useState(false);
-  const ctl = useRef<AbortController | null>(null);
-  useEffect(() => { aiAvailable().then(setAiOk); return () => ctl.current?.abort(); }, []);
-  useEffect(() => { setText(p.pitches[len]); setErr(""); }, [len]);
-  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-  const secs = Math.round(words / 2.4);
-  const dirty = text !== p.pitches[len];
-
-  async function refine() {
-    ctl.current = new AbortController();
-    setBusy(true); setErr("");
-    const before = text;
-    try {
-      const out = await refinePitch({ ...p, pitches: { ...p.pitches, [len]: text } }, len, ctl.current.signal, setText);
-      setText(out);
-    } catch (e: any) { setText(e?.text ?? before); setErr(aiErrorText(e)); } finally { setBusy(false); }
-  }
-
-  const done = store.events.filter((e) => e.kind === "coffee" && e.status === "done").length;
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] items-start">
-      <div className="flex flex-col gap-6 min-w-0">
-        <Card className="p-5 md:p-7 flex flex-col gap-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="flex gap-3 min-w-0">
-              <span className="grid place-items-center w-10 h-10 rounded-lg bg-sunken text-brand shrink-0"><Icon name="flag" /></span>
-              <div><h2 className="font-serif text-[26px] font-semibold leading-tight">Career Goals & Target Roles</h2><p className="text-[13px] text-fg-3">Target roles and wishlist companies feed every AI brief</p></div>
-            </div>
-            {p.cycle && <Chip tone="peach">{p.cycle}</Chip>}
+    <div className="w-full">
+      <Card className="p-5 md:p-7 flex flex-col gap-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex gap-3 min-w-0">
+            <span className="grid place-items-center w-10 h-10 rounded-lg bg-sunken text-brand shrink-0"><Icon name="flag" /></span>
+            <div><h2 className="font-serif text-[26px] font-semibold leading-tight">Career Goals & Target Roles</h2><p className="text-[13px] text-fg-3">Target roles and wishlist companies feed every AI brief</p></div>
           </div>
-          <ListEditor id="pf-roles" label="Target roles" items={p.targetRoles} onChange={(v) => save({ targetRoles: v })} placeholder="e.g. Product Analyst" />
-          <ListEditor id="pf-wish" label="Wishlist companies" items={p.wishlist} onChange={(v) => save({ wishlist: v })} placeholder="e.g. Shopify" tone="neutral" />
-        </Card>
-
-        <Card className="p-5 md:p-7 flex flex-col gap-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="flex gap-3">
-              <span className="grid place-items-center w-10 h-10 rounded-lg bg-sunken text-brand"><Icon name="record_voice_over" /></span>
-              <div><h2 className="font-serif text-[26px] font-semibold leading-tight">Self-introductions</h2><p className="text-[13px] text-fg-3">Keep three lengths ready for different moments</p></div>
-            </div>
-            <Segmented label="Pitch length" value={len} onChange={setLen} options={(Object.keys(PITCH_LEN) as (keyof typeof PITCH_LEN)[]).map((k) => ({ value: k, label: PITCH_LEN[k] }))} />
-          </div>
-          <p className="text-[13px] text-fg-2 flex items-center gap-1.5"><Icon name="info" className="text-[16px]" />Use it for: {PITCH_USE[len]}</p>
-          <div className="rounded-xl bg-card-2 border border-line p-4 flex flex-col gap-3">
-            <label htmlFor="pf-pitch" className="sr-only">{PITCH_LEN[len]} pitch</label>
-            <textarea id="pf-pitch" rows={len === "s120" ? 9 : len === "s60" ? 6 : 4} value={text} readOnly={busy} onChange={(e) => setText(e.target.value)}
-              placeholder="I’m a Master of Management Analytics student at Rotman with a background in statistics…"
-              className="w-full bg-transparent font-serif italic text-[18px] leading-relaxed outline-none resize-y" />
-            <div className="flex flex-wrap items-center gap-3 justify-between">
-              <span className={cx("text-[13px] tnum", secs > { s30: 35, s60: 70, s120: 135 }[len] ? "text-danger font-semibold" : "text-fg-3")}>{words} words · about {secs} sec spoken</span>
-              <div className="flex gap-2">
-                {busy && <Thinking label="Refining" />}
-                {aiOk && !busy && <Button size="sm" variant="ai" icon="auto_awesome" onClick={refine}>{text.trim() ? "Refine with AI" : "Draft with AI"}</Button>}
-                <Button size="sm" variant="primary" icon="check" disabled={!dirty || busy} onClick={async () => { await save({ pitches: { ...p.pitches, [len]: text } }); toast("Pitch saved"); }}>Save</Button>
-              </div>
-            </div>
-            {err && <p className="text-[13px] text-danger">{err}</p>}
-          </div>
-        </Card>
-      </div>
-
-      <Card className="p-5 md:p-6 flex flex-col gap-4">
-        <div className="flex items-center justify-between"><h2 className="font-serif text-[24px] font-semibold">Network Pulse</h2><span className="text-[12px] text-fg-3">Updated live</span></div>
-        <div className="grid grid-cols-3 gap-2">
-          {[[store.contacts.length, "Contacts"], [upcomingChats(store.events).length, "Upcoming chats"], [done, "Chats done"]].map(([n, l]) => (
-            <div key={l as string} className="rounded-xl bg-card-2 border border-line p-3 text-center">
-              <p className="font-serif text-[30px] font-semibold tnum leading-none">{n}</p>
-              <p className="text-[12px] font-semibold text-fg-2 mt-1.5">{l}</p>
-            </div>
-          ))}
+          {p.cycle && <Chip tone="peach">{p.cycle}</Chip>}
         </div>
-        <p className="text-[13px] text-fg-2">A steady rhythm beats a burst: two chats a week through recruiting season adds up to 30+ conversations.</p>
+        <ListEditor id="pf-roles" label="Target roles" items={p.targetRoles} onChange={(v) => save({ targetRoles: v })} placeholder="e.g. Product Analyst" />
+        <ListEditor id="pf-wish" label="Wishlist companies" items={p.wishlist} onChange={(v) => save({ wishlist: v })} placeholder="e.g. Shopify" tone="neutral" />
       </Card>
     </div>
   );
@@ -173,8 +101,11 @@ function Resume({ p, save }: { p: Profile; save: (x: Partial<Profile>) => Promis
 
   async function onFile(f: File | undefined) {
     if (!f) return;
-    if (!/\.(txt|md)$/i.test(f.name) && !f.type.startsWith("text/")) { toast("Upload a .txt file, or paste your resume text.", "error"); return; }
-    setText((await f.text()).slice(0, 20000));
+    try {
+      setText(await extractResumeText(f));
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Could not read this file.", "error");
+    }
   }
   async function extract() {
     setBusy(true); setErr("");
@@ -194,7 +125,7 @@ function Resume({ p, save }: { p: Profile; save: (x: Partial<Profile>) => Promis
         {p.skills.length > 0 && <Chip tone="blue" icon="check_circle">Parsed</Chip>}
       </div>
       <div>
-        <Label htmlFor="pf-resume" hint={<label className="text-brand font-semibold cursor-pointer inline-flex items-center gap-1"><Icon name="upload_file" className="text-[16px]" />Upload .txt<input type="file" accept=".txt,.md,text/plain" className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} /></label>}>Resume text</Label>
+        <Label htmlFor="pf-resume" hint={<label className="text-brand font-semibold cursor-pointer inline-flex items-center gap-1"><Icon name="upload_file" className="text-[16px]" />Upload PDF or text<input type="file" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" className="sr-only" onChange={(e) => { void onFile(e.target.files?.[0]); e.currentTarget.value = ""; }} /></label>}>Resume text</Label>
         <TextArea id="pf-resume" rows={10} value={text} onChange={(e) => setText(e.target.value)} placeholder="Paste the text of your resume: education, experience, projects, skills." />
       </div>
       <div className="flex flex-wrap gap-2 items-center">
@@ -208,46 +139,7 @@ function Resume({ p, save }: { p: Profile; save: (x: Partial<Profile>) => Promis
   );
 }
 
-function AiPrefs({ p, save }: { p: Profile; save: (x: Partial<Profile>) => Promise<void> }) {
-  return (
-    <Card className="p-5 md:p-7 flex flex-col gap-6 max-w-3xl">
-      <div className="flex gap-3">
-        <span className="grid place-items-center w-10 h-10 rounded-lg bg-sunken text-brand"><Icon name="tune" /></span>
-        <div><h2 className="font-serif text-[26px] font-semibold leading-tight">NextCup AI Preferences</h2><p className="text-[13px] text-fg-3">Briefing tone and follow-up rhythm</p></div>
-      </div>
-      <div>
-        <p className="label-caps text-fg-3 mb-2">Outreach voice & pitch tone</p>
-        <div className="flex flex-col gap-2" role="radiogroup" aria-label="Tone">
-          {(Object.keys(TONE_LABEL) as Tone[]).map((t) => (
-            <button key={t} type="button" role="radio" aria-checked={p.tone === t} onClick={() => save({ tone: t })}
-              className={cx("flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-left border transition", p.tone === t ? "bg-ink text-on-ink border-transparent" : "bg-card-2 border-line hover:bg-card")}>
-              <span><span className="block font-semibold">{TONE_LABEL[t].title}</span><span className={cx("block text-[13px]", p.tone === t ? "opacity-80" : "text-fg-3")}>{TONE_LABEL[t].hint}</span></span>
-              <Icon name={p.tone === t ? "check_circle" : "radio_button_unchecked"} />
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><p className="font-semibold">Standard duration</p><p className="text-[13px] text-fg-3">Default length for new coffee chats</p></div>
-        <Segmented label="Standard duration" value={p.durationMin} onChange={(v) => save({ durationMin: v })} options={[15, 30, 45].map((m) => ({ value: m, label: m === 30 ? "30m (default)" : `${m}m` }))} />
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><p className="font-semibold">Follow-up check-in</p><p className="text-[13px] text-fg-3">When to plan the check-in after a logged chat</p></div>
-        <Segmented label="Follow-up cadence" value={p.followUpWeeks} onChange={(v) => save({ followUpWeeks: v })} options={[2, 3, 4, 6].map((w) => ({ value: w, label: `${w} wks` }))} />
-      </div>
-      <div className="rounded-xl bg-card-2 border border-line p-4 text-[14px] text-fg-2 flex gap-3">
-        <Icon name="lock" className="text-brand" />
-        <p>AI only runs when you press an AI button. Your notes for that contact are sent with the request and aren’t used for anything else.</p>
-      </div>
-    </Card>
-  );
-}
-
 function Privacy() {
-  const store = useStore();
-  const { go } = useNav();
-  const toast = useToast();
-  const [confirm, setConfirm] = useState(false);
   const [theme, setTheme] = useState<string>(() => { try { return localStorage.getItem("nextcup:theme") ?? "system"; } catch { return "system"; } });
   useEffect(() => {
     const r = document.documentElement;
@@ -293,10 +185,6 @@ function Privacy() {
           <Segmented label="Theme" value={theme} onChange={setTheme} options={[{ value: "system", label: "System" }, { value: "light", label: "Light" }, { value: "dark", label: "Dark" }]} />
         </div>
       </Card>
-      <Modal open={confirm} onClose={() => setConfirm(false)} labelledBy="wipe-title" title="Delete everything?"
-        footer={<><Button variant="secondary" onClick={() => setConfirm(false)}>Cancel</Button><Button variant="danger" icon="delete_forever" onClick={wipe}>Delete all my data</Button></>}>
-        <p className="text-fg-2">This permanently deletes your profile, {store.contacts.length} contacts, all events and notes. Export first if you want a copy. It can’t be undone.</p>
-      </Modal>
     </div>
   );
 }

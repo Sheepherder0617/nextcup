@@ -147,37 +147,8 @@ function Privacy() {
     try { localStorage.setItem("nextcup:theme", theme); } catch { /* ignore */ }
   }, [theme]);
 
-  async function exportAll() {
-    const data = JSON.stringify({ exportedAt: new Date().toISOString(), profile: store.profile, contacts: store.contacts, events: store.events, notes: store.notes }, null, 2);
-    const ok = await saveFile(`nextcup-export-${new Date().toISOString().slice(0, 10)}.json`, data, "application/json");
-    if (ok) toast("Export ready");
-  }
-  async function wipe() {
-    await store.wipeAll();
-    setConfirm(false);
-    go(store.auth.enabled ? "signup" : "welcome");
-  }
-
   return (
-    <div className="grid gap-6 lg:grid-cols-2 items-start">
-      <Card className="p-5 md:p-7 flex flex-col gap-4">
-        <h2 className="font-serif text-[26px] font-semibold">Where your data lives</h2>
-        <div className="rounded-xl bg-card-2 border border-line p-4 flex gap-3">
-          <Icon name={store.mode === "local" ? "smartphone" : "cloud_done"} className="text-brand text-[24px]" />
-          <p className="text-[14px] text-fg-2">{store.mode === "cloud"
-            ? "Saved privately to your account in this NextCup workspace. Other people who open the same link get their own separate, empty workspace and can’t see yours."
-            : store.mode === "supabase"
-            ? `Saved to your NextCup account (${store.auth.email}). Only you can read your contacts and notes, and they sync to every device you sign in on.`
-            : "Saved in this browser on this device. Clearing your browser data removes it, so export a backup now and then."}</p>
-        </div>
-        <ul className="text-[14px] text-fg-2 flex flex-col gap-1.5">
-          <li><b className="text-fg tnum">{store.contacts.length}</b> contacts · <b className="text-fg tnum">{store.events.length}</b> events · <b className="text-fg tnum">{store.notes.length}</b> notes</li>
-        </ul>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" icon="download" onClick={exportAll}>Export my data (.json)</Button>
-          <Button variant="ghost" icon="delete_forever" className="text-danger" onClick={() => setConfirm(true)}>Delete everything</Button>
-        </div>
-      </Card>
+    <div className="w-full">
       <Card className="p-5 md:p-7 flex flex-col gap-4">
         <h2 className="font-serif text-[26px] font-semibold">Appearance</h2>
         <div className="flex items-center justify-between gap-3">

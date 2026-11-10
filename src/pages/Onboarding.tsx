@@ -9,8 +9,7 @@ import type { Profile } from "../lib/types";
 const splitList = (s: string) => s.split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
 
 export function Onboarding() {
-  const { saveProfile, viewer, profile } = useStore();
-  const { saveProfile, viewer, mode, profile, auth } = useStore();
+  const { saveProfile, viewer, profile, auth } = useStore();
   const { go } = useNav();
   const toast = useToast();
   const [name, setName] = useState(profile?.name ?? viewer.name ?? "");
@@ -94,13 +93,6 @@ export function Onboarding() {
         <Card className="p-5 md:p-8 shadow-lift">
           <form onSubmit={submit} className="flex flex-col gap-5">
             <h2 className="font-serif text-[30px] font-semibold">Get Started in Seconds</h2>
-            <div className="flex items-center gap-4 rounded-xl bg-card-2 border border-line p-4">
-              <Avatar name={name || "You"} src={viewer.avatarUrl} size={60} />
-              <div className="text-[13px] text-fg-2">
-                <p className="font-semibold text-fg text-sm">{mode === "cloud" ? "Signed in with your Claude account" : mode === "supabase" ? `Signed in as ${auth.email}` : "Saved on this device"}</p>
-                <p>{mode === "cloud" ? "Your contacts and notes are private to you. Nobody else who opens this page can see them." : mode === "supabase" ? "Your contacts and notes are private to your account and sync across your devices." : "Data stays in this browser. Connect a database later to sync across devices."}</p>
-              </div>
-            </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div><Label htmlFor="ob-name">Full name</Label><Input id="ob-name" icon="person" value={name} onChange={(e) => setName(e.target.value)} placeholder="Maya Lin" autoComplete="name" required /></div>
               <div><Label htmlFor="ob-email">Email</Label><Input id="ob-email" icon="mail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@school.edu" autoComplete="email" /></div>

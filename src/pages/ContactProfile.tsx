@@ -204,7 +204,7 @@ function HistoryPanel({ c, events, notes, onDraft }: { c: Contact; events: ChatE
   );
 }
 
-const KIND_NOTE: Record<NoteKind, string> = { debrief: "Meeting Debrief", prep: "Prep Note", intro: "First Impression", note: "Note", followup_response: "Response to follow-up", followup_message: "Follow-up message" };
+const KIND_NOTE: Record<NoteKind, string> = { debrief: "Meeting Debrief", prep: "Prep Note", intro: "First Impression", note: "Note", followup_response: "Response to Follow-up", followup_message: "Follow-up Message" };
 
 function LogPanel({ c, notes }: { c: Contact; notes: Note[] }) {
   const store = useStore();

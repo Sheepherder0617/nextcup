@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useStore } from "../lib/store";
 import { intent, useNav } from "../lib/nav";
-import { Button, Card, Chip, Icon, Input, Label, Modal, TextArea, cx, useToast } from "../components/ui";
+import { Button, Card, Icon, Input, Label, Modal, TextArea, cx, useToast } from "../components/ui";
 import { GOAL_HINT, GOAL_LABEL, ROLE_ICON, ROLE_LABEL, type Contact, type Goal, type RoleType } from "../lib/types";
 import { todayISO, uid } from "../lib/date";
 

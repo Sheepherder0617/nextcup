@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useStore } from "../lib/store";
+import { useNav } from "../lib/nav";
 import { Avatar, Button, Card, Chip, Icon, Input, Label, Modal, Segmented, Select, TextArea, Thinking, cx, useToast } from "../components/ui";
 import { aiAvailable, aiErrorText, extractSkills } from "../lib/ai";
 import { timezoneLabel } from "../lib/date";
+import { saveFile } from "../lib/files";
 import { extractResumeText } from "../lib/resume";
 import { type Profile } from "../lib/types";
 
@@ -140,6 +142,10 @@ function Resume({ p, save }: { p: Profile; save: (x: Partial<Profile>) => Promis
 }
 
 function Privacy() {
+  const store = useStore();
+  const { go } = useNav();
+  const toast = useToast();
+  const [confirm, setConfirm] = useState(false);
   const [theme, setTheme] = useState<string>(() => { try { return localStorage.getItem("nextcup:theme") ?? "system"; } catch { return "system"; } });
   useEffect(() => {
     const r = document.documentElement;
@@ -185,6 +191,10 @@ function Privacy() {
           <Segmented label="Theme" value={theme} onChange={setTheme} options={[{ value: "system", label: "System" }, { value: "light", label: "Light" }, { value: "dark", label: "Dark" }]} />
         </div>
       </Card>
+      <Modal open={confirm} onClose={() => setConfirm(false)} labelledBy="wipe-title" title="Delete everything?"
+        footer={<><Button variant="secondary" onClick={() => setConfirm(false)}>Cancel</Button><Button variant="danger" icon="delete_forever" onClick={wipe}>Delete all my data</Button></>}>
+        <p className="text-fg-2">This permanently deletes your profile, {store.contacts.length} contacts, all events and notes. Export first if you want a copy. It can’t be undone.</p>
+      </Modal>
     </div>
   );
 }

@@ -39,7 +39,7 @@ const compiler = await compile(fs.readFileSync(path.join(src, "index.css"), "utf
 let css = compiler.build([...candidates]);
 css = css.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\n\s*\n/g, "\n");
 
-const fonts = "https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&family=Plus+Jakarta+Sans:wght@400..800&display=swap";
+const fonts = "https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&family=Plus+Jakarta+Sans:wght@400..800&family=Pacifico&display=swap";
 const icons = "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&display=block";
 
 const html = `<title>NextCup</title>

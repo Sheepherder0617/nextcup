@@ -172,8 +172,20 @@ function BrowserBar({ children }: { children?: ReactNode }) {
   );
 }
 
+function useIsPhone() {
+  const q = "(max-width: 767px)";
+  const [phone, setPhone] = useState(() => typeof matchMedia !== "undefined" && matchMedia(q).matches);
+  useEffect(() => {
+    if (typeof matchMedia === "undefined") return;
+    const m = matchMedia(q); const on = () => setPhone(m.matches);
+    m.addEventListener?.("change", on); return () => m.removeEventListener?.("change", on);
+  }, []);
+  return phone;
+}
+
 function Demo() {
   const reduced = useReducedMotion();
+  const phone = useIsPhone();
   const video = useRef<HTMLVideoElement>(null);
   const [sound, setSound] = useState(false);
 
@@ -181,10 +193,11 @@ function Demo() {
   useEffect(() => {
     const v = video.current;
     if (!v || reduced || typeof IntersectionObserver === "undefined") return;
+    v.muted = !sound;
     const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) v.play().catch(() => {}); else v.pause(); }, { threshold: 0.35 });
     io.observe(v);
     return () => io.disconnect();
-  }, [reduced]);
+  }, [reduced, phone]);
 
   // Browsers only autoplay muted video, so sound is opt-in.
   function toggleSound() {
@@ -195,26 +208,45 @@ function Demo() {
     if (!sound) v.play().catch(() => {});
   }
 
+  const soundBtn = (cls: string) => (
+    <button type="button" onClick={toggleSound} aria-pressed={sound} aria-label={sound ? "Mute demo" : "Play demo with sound"}
+      className={cx("inline-flex items-center gap-1 rounded-full font-semibold transition", sound ? "bg-ink text-on-ink" : "bg-card text-fg-2 border border-line-2 hover:text-fg", cls)}>
+      <Icon name={sound ? "volume_up" : "volume_off"} className="text-[15px]" />Sound
+    </button>
+  );
+  const label = "Screen recording of NextCup: a contact's history, AI follow-up ideas, the calendar, and turning rough notes into a debrief.";
+
   return (
     <section id="how" className="gutter">
       <div className="mx-auto max-w-[1180px] py-14 md:py-20">
         <div className="flex flex-col items-center text-center gap-3 mb-8 md:mb-10">
           <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[22ch]">Meet once. Stay connected for good.</h2>
         </div>
-        <figure id="demo" className="mx-auto max-w-[980px] rounded-2xl border border-line-2 bg-card shadow-lift overflow-hidden">
-          <BrowserBar>
-            <button type="button" onClick={toggleSound} aria-pressed={sound} aria-label={sound ? "Mute demo" : "Play demo with sound"}
-              className="absolute right-2 top-1 md:top-1.5 inline-flex items-center gap-1 h-6 px-2.5 rounded-full bg-ink text-on-ink text-[12px] font-semibold hover:opacity-90 transition">
-              <Icon name={sound ? "volume_up" : "volume_off"} className="text-[15px]" />{sound ? "Sound on" : "Turn on sound"}
-            </button>
-          </BrowserBar>
-          <video ref={video} poster={IMG("demo-poster")} muted playsInline loop preload="metadata"
-            controls={reduced} width={1280} height={800} className="block w-full h-auto bg-card"
-            aria-label="Screen recording of NextCup: a contact's history, AI follow-up ideas, the calendar, and turning rough notes into a debrief.">
-            <source src="/landing/demo.webm" type="video/webm" />
-            <source src="/landing/demo.mp4" type="video/mp4" />
-          </video>
-        </figure>
+        {phone ? (
+          /* Phone: the phone version of the app, in a phone frame */
+          <figure id="demo" className="flex flex-col items-center gap-4">
+            <div className="relative w-[min(250px,64vw)] rounded-[40px] bg-ink p-[8px] shadow-lift ring-1 ring-line-2">
+              <div aria-hidden="true" className="absolute left-1/2 -translate-x-1/2 top-[14px] z-10 w-[30%] h-[19px] rounded-full bg-ink" />
+              <video key="phone" ref={video} poster={IMG("demo-phone-poster")} muted playsInline loop preload="metadata"
+                controls={reduced} width={780} height={1688} className="block w-full h-auto rounded-[32px] bg-card" aria-label={label}>
+                <source src="/landing/demo-phone.webm" type="video/webm" />
+                <source src="/landing/demo-phone.mp4" type="video/mp4" />
+              </video>
+            </div>
+            {soundBtn("h-8 px-3.5 text-[13px] shadow-soft")}
+          </figure>
+        ) : (
+          <figure id="demo" className="mx-auto max-w-[980px] rounded-2xl border border-line-2 bg-card shadow-lift overflow-hidden">
+            <BrowserBar>
+              <span className="absolute right-2 top-1 md:top-1.5">{soundBtn("h-6 px-2.5 text-[12px]")}</span>
+            </BrowserBar>
+            <video key="web" ref={video} poster={IMG("demo-poster")} muted playsInline loop preload="metadata"
+              controls={reduced} width={1280} height={800} className="block w-full h-auto bg-card" aria-label={label}>
+              <source src="/landing/demo.webm" type="video/webm" />
+              <source src="/landing/demo.mp4" type="video/mp4" />
+            </video>
+          </figure>
+        )}
         <p className="mt-4 text-center text-[12px] text-fg-3">Demo with made-up contacts.</p>
       </div>
     </section>
@@ -331,10 +363,10 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
             NextCup remembers what you talked about,<br className="hidden lg:block" /> reminds you when to reach out, and suggests what to say,<br className="hidden lg:block" /> so connections last for years.
           </p>
           <div className="flex flex-row flex-wrap justify-center lg:justify-start items-center gap-x-4 gap-y-2 sm:gap-5 md:mt-1">
-            <Button variant="primary" size="lg" onClick={onStart} className="rounded-full !h-10 !px-5 !text-[14px] md:!h-12 md:!px-7 md:!text-[15px]">
+            <Button variant="primary" size="lg" onClick={onStart} className="rounded-full !h-9 !px-4 !text-[13.5px] !gap-1.5 md:!h-12 md:!px-7 md:!text-[15px] md:!gap-2">
               {signedIn ? "Open your workspace" : "Start for free"}
-              {/* Arrow on phones and tablets only */}
-              <Icon name="arrow_forward" className="text-[18px] lg:!hidden" />
+              {/* Arrow on tablets only: phones keep the button compact, desktop keeps it clean */}
+              <span className="hidden md:inline-flex lg:!hidden"><Icon name="arrow_forward" className="text-[18px]" /></span>
             </Button>
             <a href="#how" onClick={(e) => { e.preventDefault(); document.getElementById("demo")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" }); }}
               className="text-[14px] md:text-[15px] font-semibold text-fg-2 hover:text-fg rounded-md">See how it works ↓</a>

@@ -1,0 +1,13 @@
+{
+  "name": "NextCup",
+  "short_name": "NextCup",
+  "description": "Keep your connections warm. A relationship keeper for students and early-career professionals.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fcf2eb",
+  "theme_color": "#fcf2eb",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

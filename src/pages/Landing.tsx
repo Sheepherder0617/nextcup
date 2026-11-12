@@ -9,9 +9,9 @@ const IMG = (name: string) => `/landing/${name}.webp`;
 
 // Hero story, in three acts that loop: meet again → blank on details → one tap brings it back.
 const ACTS = [
-  { label: "You meet again", ms: 3600 },
-  { label: "You both blank", ms: 2400 },
-  { label: "One tap, it’s all back", ms: 6000 },
+  { label: "Hi again!", ms: 3200 },
+  { label: "Oops…", ms: 3600 },
+  { label: "Oh right!", ms: 6000 },
 ] as const;
 
 const PAINS = [
@@ -355,10 +355,10 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
             }}>
             <Stage act={shown} />
           </div>
-          {/* Desktop/tablet: the app card floats over the scene */}
-          <div className={cx("hidden md:block absolute right-[-8px] lg:right-[-20px] bottom-[52px] w-[min(330px,58%)] transition-all duration-700 ease-[cubic-bezier(.22,1,.36,1)]",
-            shown === 2 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none")}>
-            <ContactCard />
+          {/* Desktop/tablet: a compact card pops up above their heads, like a shared memory, without hiding their faces */}
+          <div className={cx("hidden md:block absolute left-1/2 -translate-x-1/2 top-0 w-[min(340px,62%)] transition-all duration-700 ease-[cubic-bezier(.22,1,.36,1)]",
+            shown === 2 ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3 pointer-events-none")}>
+            <MemoryCard />
           </div>
           <Steps act={shown} onPick={pick} className="mt-4" />
           {/* Phone: the card appears below the steps, so the step labels stay readable */}
@@ -375,16 +375,24 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
 }
 
 function Stage({ act }: { act: number }) {
+  const scenes = ["hero-1", "hero-2", "hero-3"];
   return (
     <div className="relative w-full aspect-[3/2.1]" role="img"
-      aria-label="Two young professionals run into each other at a networking event. Both wonder when they last talked and what they discussed. She checks NextCup on her phone and sees their whole history.">
-      <div aria-hidden="true" className="absolute inset-x-[4%] top-[8%] bottom-0 rounded-t-[999px] rounded-b-[32px] bg-[color-mix(in_oklab,var(--peach)_55%,var(--card))] border border-line" />
-      <img src={IMG("hero-1")} alt="" draggable={false} width={1400} height={933} fetchPriority="high"
-        className={cx("absolute inset-x-0 bottom-0 w-full transition-opacity duration-700", act === 0 ? "opacity-100" : "opacity-0")} />
-      <img src={IMG("hero-2")} alt="" draggable={false} width={1400} height={933}
-        className={cx("absolute inset-x-0 bottom-0 w-full transition-opacity duration-700", act === 0 ? "opacity-0" : "opacity-100")} />
-      <Thought show={act === 0} className="left-[1%] top-[17%] md:top-[24%] w-[47%] md:w-[44%]" tail="left-[48%]" delay={250}>What did we chat about again?</Thought>
-      <Thought show={act === 0} className="right-[0%] top-[6%] md:top-[14%] w-[45%] md:w-[42%]" tail="left-[38%]" delay={900}>When did we last talk…?</Thought>
+      aria-label="Two young professionals meet again at a career fair. Neither remembers the details, so he scratches his head and she checks her phone. Then they both remember and happily pick up the conversation.">
+      {/* Scenes fade into the page on the sides and bottom */}
+      <div className="absolute inset-x-0 bottom-0 aspect-[3/2] [mask-image:linear-gradient(to_right,transparent,#000_7%,#000_93%,transparent),linear-gradient(to_top,transparent,#000_8%)] [mask-composite:intersect] [-webkit-mask-composite:source-in]">
+        {scenes.map((n, i) => (
+          <img key={n} src={IMG(n)} alt="" draggable={false} width={1400} height={933} fetchPriority={i === 0 ? "high" : undefined}
+            className={cx("absolute inset-0 w-full h-full transition-opacity duration-700", act === i ? "opacity-100" : "opacity-0")} />
+        ))}
+      </div>
+      {/* Act 2: she is searching ("typing" dots), he is trying to remember */}
+      <Thought show={act === 1} className="left-[20%] top-[14%] md:top-[16%]" tail="left-[60%]" delay={200}>
+        <span className="typing-bounce inline-flex items-center gap-1 px-1 py-1">
+          <span className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-fg-3" /><span className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-fg-3" /><span className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-fg-3" />
+        </span>
+      </Thought>
+      <Thought show={act === 1} className="right-[1%] -top-[4%] md:top-[5%] w-[46%] md:w-[40%]" tail="left-[30%]" delay={700}>When did we last talk…?</Thought>
     </div>
   );
 }
@@ -421,6 +429,23 @@ function Steps({ act, onPick, className }: { act: number; onPick: (i: number) =>
 }
 
 /** Mock contact card for the hero. The person is fictional and labelled as an example. */
+/** Compact version of the example card for the hero scene. */
+function MemoryCard() {
+  return (
+    <div className="rounded-2xl bg-card/95 backdrop-blur border border-line-2 shadow-lift px-3.5 py-3 flex flex-col gap-2 text-left">
+      <div className="flex items-center gap-2.5">
+        <span className="grid place-items-center w-9 h-9 rounded-full bg-blue-soft text-on-blue-soft font-semibold text-[13px] shrink-0">ML</span>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-[14px] leading-tight">Marcus Lee <span className="font-normal text-fg-3">· PM, fintech</span></p>
+          <p className="text-[12px] text-fg-2 flex items-center gap-1"><Icon name="history" className="text-[14px] text-brand" />Last chat: Sep 18, 7 weeks ago</p>
+        </div>
+        <span className="label-caps !text-[9px] text-fg-3 border border-line rounded-full px-1.5 py-0.5">Example</span>
+      </div>
+      <p className="rounded-lg ai-glow border border-line px-2.5 py-1.5 text-[12.5px]"><span className="font-semibold text-on-peach">Ask: </span>“How did the intern demo day go?”</p>
+    </div>
+  );
+}
+
 function ContactCard() {
   return (
     <div className="rounded-2xl bg-card border border-line-2 shadow-lift p-4 flex flex-col gap-3 text-left">

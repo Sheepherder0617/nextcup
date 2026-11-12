@@ -21,13 +21,12 @@ const PAINS = [
 ];
 
 
-// Product tour: one silent screen recording (fictional demo data) with clickable chapters.
-// `at` is where each chapter starts in public/landing/demo.mp4, in seconds.
-const TOUR = [
-  { at: 0, icon: "timeline", title: "Remember every conversation", text: "Every chat and note in one timeline." },
-  { at: 7.9, icon: "auto_awesome", title: "Get AI-tailored follow-ups", text: "AI drafts the message and picks the moment." },
-  { at: 19.6, icon: "calendar_month", title: "Never miss a check-in", text: "Chats, thank-yous and check-ins, with reminders." },
-  { at: 24.8, icon: "edit_note", title: "Organize messy notes", text: "Rough notes in, clear takeaways out." },
+// Feature showcase: each feature has a still screenshot of the real app (made-up demo data).
+const FEATURES = [
+  { img: "feat-log", icon: "timeline", title: "Remember every conversation", text: "Every chat and note in one timeline." },
+  { img: "feat-followup", icon: "auto_awesome", title: "Get AI-tailored follow-ups", text: "AI drafts the message and picks the moment." },
+  { img: "feat-calendar", icon: "calendar_month", title: "Never miss a check-in", text: "Chats, thank-yous and check-ins, with reminders." },
+  { img: "feat-debrief", icon: "edit_note", title: "Organize messy notes", text: "Rough notes in, clear takeaways out." },
 ];
 
 const PRIVACY = [
@@ -79,8 +78,11 @@ export function Landing() {
         </div>
       </section>
 
-      {/* ---------- How it works: product tour ---------- */}
-      <Tour />
+      {/* ---------- How it works: demo video ---------- */}
+      <Demo />
+
+      {/* ---------- Features: still screenshots ---------- */}
+      <Features />
 
       {/* ---------- Privacy ---------- */}
       <section className="gutter">
@@ -161,13 +163,22 @@ function WarmWord() {
   );
 }
 
-function Tour() {
+function BrowserBar({ children }: { children?: ReactNode }) {
+  return (
+    <div aria-hidden={children ? undefined : true} className="relative h-8 md:h-9 px-3 flex items-center gap-1.5 border-b border-line bg-header">
+      <span className="w-2.5 h-2.5 rounded-full bg-line-2" /><span className="w-2.5 h-2.5 rounded-full bg-line-2" /><span className="w-2.5 h-2.5 rounded-full bg-line-2" />
+      <span className="ml-3 flex-1 max-w-[260px] h-5 rounded-md bg-sunken text-[11px] text-fg-3 grid place-items-center">NextCup</span>
+      {children}
+    </div>
+  );
+}
+
+function Demo() {
   const reduced = useReducedMotion();
   const video = useRef<HTMLVideoElement>(null);
-  const [active, setActive] = useState(0);
   const [sound, setSound] = useState(false);
 
-  // Play only while the tour is on screen (saves data and battery); never autoplay for reduced motion.
+  // Play only while the demo is on screen (saves data and battery); never autoplay for reduced motion.
   useEffect(() => {
     const v = video.current;
     if (!v || reduced || typeof IntersectionObserver === "undefined") return;
@@ -176,12 +187,6 @@ function Tour() {
     return () => io.disconnect();
   }, [reduced]);
 
-  function onTime() {
-    const t = video.current?.currentTime ?? 0;
-    let i = 0;
-    TOUR.forEach((c, k) => { if (t >= c.at) i = k; });
-    if (i !== active) setActive(i);
-  }
   // Browsers only autoplay muted video, so sound is opt-in.
   function toggleSound() {
     const v = video.current;
@@ -190,58 +195,84 @@ function Tour() {
     setSound(!sound);
     if (!sound) v.play().catch(() => {});
   }
-  function jump(i: number) {
-    const v = video.current;
-    setActive(i);
-    if (!v) return;
-    v.currentTime = TOUR[i].at + 0.05;
-    v.play().catch(() => {});
-  }
 
   return (
     <section id="how" className="gutter bg-card-2 border-y border-line">
       <div className="mx-auto max-w-[1180px] py-14 md:py-20">
-        <div className="flex flex-col items-center text-center gap-3 mb-8 md:mb-12">
+        <div className="flex flex-col items-center text-center gap-3 mb-8 md:mb-10">
           <SectionLabel>How it works</SectionLabel>
           <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[22ch]">Meet once. Stay connected for good.</h2>
         </div>
-        <div className="grid gap-5 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.1fr)] items-start">
-          <ol className="order-2 lg:order-1 grid grid-cols-2 lg:grid-cols-1 gap-2.5 lg:gap-3" aria-label="Tour chapters">
-            {TOUR.map((c, i) => (
-              <li key={c.title}>
-                <button type="button" onClick={() => jump(i)} aria-current={active === i ? "step" : undefined}
-                  className={cx("w-full h-full text-left rounded-2xl border p-3.5 lg:p-4 flex flex-col lg:flex-row gap-2 lg:gap-3.5 transition",
-                    active === i ? "bg-card border-line-2 shadow-soft" : "border-transparent hover:bg-card/60")}>
-                  <span className={cx("grid place-items-center shrink-0 w-9 h-9 lg:w-10 lg:h-10 rounded-xl transition", active === i ? "bg-ink text-on-ink" : "bg-peach text-on-peach")}>
-                    <Icon name={c.icon} className="text-[20px]" />
-                  </span>
-                  <span className="flex flex-col gap-1 min-w-0">
-                    <span className="text-[14px] lg:text-[16px] font-semibold leading-snug">{c.title}</span>
-                    <span className="hidden lg:block text-fg-2 text-[14px]">{c.text}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ol>
-          <figure id="demo" className="relative order-1 lg:order-2 rounded-2xl border border-line-2 bg-card shadow-lift overflow-hidden">
-            <div aria-hidden="true" className="h-8 md:h-9 px-3 flex items-center gap-1.5 border-b border-line bg-header">
-              <span className="w-2.5 h-2.5 rounded-full bg-line-2" /><span className="w-2.5 h-2.5 rounded-full bg-line-2" /><span className="w-2.5 h-2.5 rounded-full bg-line-2" />
-              <span className="ml-3 flex-1 max-w-[260px] h-5 rounded-md bg-sunken text-[11px] text-fg-3 grid place-items-center">NextCup</span>
-            </div>
-            <video ref={video} poster={IMG("demo-poster")} muted playsInline loop preload="metadata"
-              controls={reduced} onTimeUpdate={onTime} width={1280} height={800} className="block w-full h-auto bg-card"
-              aria-label="Screen recording of NextCup: a contact's history, AI follow-up ideas, the calendar, and turning rough notes into a debrief.">
-              <source src="/landing/demo.webm" type="video/webm" />
-              <source src="/landing/demo.mp4" type="video/mp4" />
-            </video>
+        <figure id="demo" className="mx-auto max-w-[980px] rounded-2xl border border-line-2 bg-card shadow-lift overflow-hidden">
+          <BrowserBar>
             <button type="button" onClick={toggleSound} aria-pressed={sound} aria-label={sound ? "Mute demo" : "Play demo with sound"}
               className="absolute right-2 top-1 md:top-1.5 inline-flex items-center gap-1 h-6 px-2.5 rounded-full bg-ink text-on-ink text-[12px] font-semibold hover:opacity-90 transition">
               <Icon name={sound ? "volume_up" : "volume_off"} className="text-[15px]" />{sound ? "Sound on" : "Turn on sound"}
             </button>
-            <figcaption className="lg:hidden px-4 py-3 text-[14px] text-fg-2 border-t border-line">{TOUR[active].text}</figcaption>
+          </BrowserBar>
+          <video ref={video} poster={IMG("demo-poster")} muted playsInline loop preload="metadata"
+            controls={reduced} width={1280} height={800} className="block w-full h-auto bg-card"
+            aria-label="Screen recording of NextCup: a contact's history, AI follow-up ideas, the calendar, and turning rough notes into a debrief.">
+            <source src="/landing/demo.webm" type="video/webm" />
+            <source src="/landing/demo.mp4" type="video/mp4" />
+          </video>
+        </figure>
+        <p className="mt-4 text-center text-[12px] text-fg-3">Demo with made-up contacts.</p>
+      </div>
+    </section>
+  );
+}
+
+function Features() {
+  const [active, setActive] = useState(0);
+  const shot = (i: number, eager = false) => (
+    <img src={IMG(FEATURES[i].img)} alt={`NextCup screen: ${FEATURES[i].title}`} width={1600} height={1000}
+      loading={eager ? "eager" : "lazy"} className="block w-full h-auto" />
+  );
+  return (
+    <section className="gutter">
+      <div className="mx-auto max-w-[1180px] py-14 md:py-20">
+        <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-3 mb-8 md:mb-10">
+          <SectionLabel>Features</SectionLabel>
+          <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[20ch]">Everything you need to keep in touch.</h2>
+        </div>
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-start">
+          <ul className="flex flex-col gap-2.5" aria-label="Features">
+            {FEATURES.map((f, i) => {
+              const open = active === i;
+              return (
+                <li key={f.title} className={cx("rounded-2xl border transition", open ? "bg-card-2 border-line-2 shadow-soft" : "border-line hover:bg-card-2/60")}>
+                  <button type="button" onClick={() => setActive(i)} aria-expanded={open}
+                    className="w-full text-left flex items-center gap-3.5 px-4 py-3.5 md:px-5 md:py-4 rounded-2xl">
+                    <span className={cx("grid place-items-center shrink-0 w-10 h-10 rounded-xl transition", open ? "bg-ink text-on-ink" : "bg-peach text-on-peach")}>
+                      <Icon name={f.icon} className="text-[20px]" />
+                    </span>
+                    <span className="flex-1 text-[16px] md:text-[17px] font-semibold">{f.title}</span>
+                    <span className="lg:hidden flex"><Icon name="expand_more" className={cx("text-[22px] text-fg-3 transition-transform", open && "rotate-180")} /></span>
+                  </button>
+                  {open && (
+                    <div className="px-4 pb-4 md:px-5 md:pb-5 -mt-1 flex flex-col gap-3 rise">
+                      <p className="text-fg-2 text-[15px] lg:pl-[54px]">{f.text}</p>
+                      {/* Phone: the screenshot sits inside the open item */}
+                      <div className="lg:hidden rounded-xl border border-line overflow-hidden">{shot(i)}</div>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+          {/* Desktop: one framed screenshot that follows the selected feature */}
+          <figure className="hidden lg:block rounded-2xl border border-line-2 bg-card shadow-lift overflow-hidden lg:sticky lg:top-24">
+            <BrowserBar />
+            <div className="grid">
+              {FEATURES.map((f, i) => (
+                <div key={f.img} className={cx("[grid-area:1/1] transition-opacity duration-500", active === i ? "opacity-100" : "opacity-0")} aria-hidden={active !== i}>
+                  {shot(i, i === 0)}
+                </div>
+              ))}
+            </div>
           </figure>
         </div>
-        <p className="mt-4 text-center text-[12px] text-fg-3">Demo with made-up contacts.</p>
       </div>
     </section>
   );

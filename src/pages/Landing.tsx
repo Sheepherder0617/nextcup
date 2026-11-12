@@ -162,6 +162,20 @@ export function Landing() {
   );
 }
 
+/** "warm", with a slow glowing gradient and coffee steam rising from it. */
+function WarmWord() {
+  return (
+    <span className="relative inline-block">
+      <svg aria-hidden="true" viewBox="0 0 60 40" className="absolute left-1/2 -translate-x-1/2 bottom-[78%] w-[0.95em] h-[0.62em] overflow-visible">
+        {["M14 38c-6-8 6-12 0-20s4-12 0-18", "M30 38c-6-8 6-12 0-20s4-12 0-18", "M46 38c-6-8 6-12 0-20s4-12 0-18"].map((d, i) => (
+          <path key={d} d={d} className="warm-steam" style={{ animationDelay: `${i * 0.7}s` }} />
+        ))}
+      </svg>
+      <em className="warm-text">warm</em>
+    </span>
+  );
+}
+
 function SectionLabel({ children }: { children: ReactNode }) {
   return <p className="label-caps text-brand">{children}</p>;
 }
@@ -199,7 +213,7 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
         <div className="flex flex-col gap-5 text-center lg:text-left items-center lg:items-start">
           <p className="label-caps text-brand">The coffee chat tracker for students &amp; early-career professionals</p>
           <h1 className="font-serif font-medium text-[38px] leading-[1.06] md:text-[56px] lg:text-[60px] tracking-[-0.02em] max-w-[16ch]">
-            Turn every coffee chat into a <em className="text-brand">network that lasts.</em>
+            Keep your connections <WarmWord /> with NextCup.
           </h1>
           <p className="text-fg-2 text-[16px] md:text-[18px] max-w-[48ch]">
             NextCup remembers what you talked about, reminds you when to reach out, and suggests what to say, so the people you meet stay in your corner for years, not days.

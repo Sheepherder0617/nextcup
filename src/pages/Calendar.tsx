@@ -315,7 +315,6 @@ function EmailReminders() {
           </span>
         </p>
         <p className="text-[14px] text-fg-2">Get an email the day before each coffee chat with your AI prep brief and talking points.</p>
-        <p className="text-[12px] text-fg-3 mt-1">Prefer your phone calendar? Tap <b>.ics</b> on any upcoming chat.</p>
       </div>
       <button type="button" role="switch" aria-checked={on} aria-label="Email reminders" onClick={() => set(!on)}
         className={cx("relative shrink-0 mt-1 w-12 h-7 rounded-full transition", on ? "bg-ink" : "bg-line-2")}>

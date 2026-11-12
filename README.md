@@ -1,5 +1,5 @@
 # NextCup — Coffee Chat Tracker
-
+https://nextcup-rotman.vercel.app/
 A web app for students to prep for coffee chats, log what they learned in two minutes, and never miss the thank-you or follow-up. Built from our Stitch designs (Warm Editorial Professional).
 
 ## What works today
@@ -76,8 +76,3 @@ AI requests go from the browser to `/api/ai` (our own server code in `api/ai.ts`
 1. Import the GitHub repo in Vercel (framework: Vite). Vercel also deploys `api/ai.ts` as a serverless function.
 2. Add `GROQ_API_KEY` as above. Every push to `main` redeploys; every PR gets its own preview link.
 
-## Suggested split (Sijie + Chloe)
-
-- **Sijie — Chats & follow-ups:** `LogChatModal`, `DraftModal`, `Dashboard`, `Calendar`, `Schedule`, `lib/ai.ts`, funnel analytics, Supabase backend.
-- **Chloe — Contacts & profile:** `Contacts`, `ContactForm`, `ContactProfile`, `Profile`, `Landing`, `Onboarding`, visual polish against Stitch.
-- Shared rule: change `lib/types.ts` together, one feature branch per change, open a PR and let the other person review the Vercel preview link.

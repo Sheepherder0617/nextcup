@@ -360,7 +360,7 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
             shown === 2 ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3 pointer-events-none")}>
             <MemoryCard />
           </div>
-          <Steps act={shown} onPick={pick} className="mt-4" />
+          <Steps act={shown} onPick={pick} auto={!reduced} className="mt-4" />
           {/* Phone: the card appears below the steps, so the step labels stay readable */}
           <div className="md:hidden mt-4">
             <div className={cx("transition-all duration-700 ease-[cubic-bezier(.22,1,.36,1)]",
@@ -410,21 +410,24 @@ function Thought({ show, className, tail, delay, children }: { show: boolean; cl
   );
 }
 
-function Steps({ act, onPick, className }: { act: number; onPick: (i: number) => void; className?: string }) {
+function Steps({ act, onPick, auto, className }: { act: number; onPick: (i: number) => void; auto: boolean; className?: string }) {
+  const emoji = ["👋", "😅", "💡"];
   return (
-    <ol className={cx("grid grid-cols-3 gap-2", className)} aria-label="The story">
-      {ACTS.map((a, i) => (
-        <li key={a.label}>
-          <button type="button" onClick={() => onPick(i)} aria-current={act === i ? "step" : undefined}
-            className="w-full text-left flex flex-col gap-1.5 rounded-md">
-            <span className="h-1 rounded-full bg-line overflow-hidden">
-              <span className={cx("block h-full rounded-full bg-brand-2 transition-[width] duration-500", act >= i ? "w-full" : "w-0")} />
-            </span>
-            <span className={cx("text-[12px] md:text-[13px] font-semibold leading-tight", act === i ? "text-fg" : "text-fg-3")}>{a.label}</span>
+    <div role="tablist" aria-label="The story" className={cx("grid grid-cols-3 gap-1 p-1 rounded-full bg-sunken border border-line", className)}>
+      {ACTS.map((a, i) => {
+        const on = act === i;
+        return (
+          <button key={a.label} type="button" role="tab" aria-selected={on} onClick={() => onPick(i)}
+            className={cx("relative overflow-hidden h-11 md:h-12 rounded-full flex items-center justify-center gap-1.5 text-[13px] md:text-[15px] font-semibold transition-colors",
+              on ? "bg-ink text-on-ink shadow-soft" : "text-fg-2 hover:bg-card hover:text-fg")}>
+            {/* While auto-playing, the active pill fills up to show when the next act comes */}
+            {on && auto && <span key={act} aria-hidden="true" className="step-fill absolute inset-y-0 left-0 bg-white/15" style={{ animationDuration: `${a.ms}ms` }} />}
+            <span aria-hidden="true" className="relative text-[15px] md:text-[17px] leading-none">{emoji[i]}</span>
+            <span className="relative whitespace-nowrap">{a.label}</span>
           </button>
-        </li>
-      ))}
-    </ol>
+        );
+      })}
+    </div>
   );
 }
 

@@ -23,10 +23,10 @@ const PAINS = [
 
 // Feature showcase: each feature has a still screenshot of the real app (made-up demo data).
 const FEATURES = [
-  { img: "feat-log", icon: "timeline", title: "Remember every conversation", text: "Every chat and note in one timeline." },
-  { img: "feat-followup", icon: "auto_awesome", title: "Get AI-tailored follow-ups", text: "AI drafts the message and picks the moment." },
-  { img: "feat-calendar", icon: "calendar_month", title: "Never miss a check-in", text: "Chats, thank-yous and check-ins, with reminders." },
-  { img: "feat-debrief", icon: "edit_note", title: "Organize messy notes", text: "Rough notes in, clear takeaways out." },
+  { img: "feat-log", phone: "phone-log", icon: "timeline", title: "Remember every conversation", text: "Every chat and note in one timeline." },
+  { img: "feat-followup", phone: "phone-followup", icon: "auto_awesome", title: "Get AI-tailored follow-ups", text: "AI drafts the message and picks the moment." },
+  { img: "feat-calendar", phone: "phone-calendar", icon: "calendar_month", title: "Never miss a check-in", text: "Chats, thank-yous and check-ins, with reminders." },
+  { img: "feat-debrief", phone: "phone-debrief", icon: "edit_note", title: "Organize messy notes", text: "Rough notes in, clear takeaways out." },
 ];
 
 const PRIVACY = [
@@ -61,7 +61,7 @@ export function Landing() {
           <img src={IMG("problem")} alt="A student at a desk looking at their phone, trying to remember someone, surrounded by faded notes" loading="lazy"
             className="w-full max-w-[300px] md:max-w-[440px] mx-auto" width={900} height={900} />
           <div className="flex flex-col gap-4">
-            <SectionLabel>Why connections fade</SectionLabel>
+            <SectionLabel>Why do connections fade?</SectionLabel>
             <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em]">You meet great people. Then life happens.</h2>
             <p className="text-fg-2 text-[16px] md:text-[17px] max-w-[56ch]">
               Great chat. You promise to keep in touch.<br />Six weeks later, you only remember their first name.
@@ -88,7 +88,6 @@ export function Landing() {
       <section className="gutter">
         <div className="mx-auto max-w-[1180px] py-10 md:py-14">
           <div className="flex flex-col items-center text-center gap-2 mb-6 md:mb-8">
-            <SectionLabel>Your data, your network</SectionLabel>
             <h2 className="font-serif font-medium text-[26px] md:text-[34px] leading-[1.1] tracking-[-0.015em]">Your network belongs to you.</h2>
           </div>
           <div className="grid gap-3 md:gap-4 md:grid-cols-3 max-w-[1100px] mx-auto">
@@ -200,7 +199,6 @@ function Demo() {
     <section id="how" className="gutter bg-card-2 border-y border-line">
       <div className="mx-auto max-w-[1180px] py-14 md:py-20">
         <div className="flex flex-col items-center text-center gap-3 mb-8 md:mb-10">
-          <SectionLabel>How it works</SectionLabel>
           <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[22ch]">Meet once. Stay connected for good.</h2>
         </div>
         <figure id="demo" className="mx-auto max-w-[980px] rounded-2xl border border-line-2 bg-card shadow-lift overflow-hidden">
@@ -234,7 +232,6 @@ function Features() {
       <div className="mx-auto max-w-[1180px] py-14 md:py-20">
         {/* Desktop: label, headline and list on the left; the screenshot on the right starts level with the headline. */}
         <div className="grid lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:grid-rows-[auto_auto_1fr] lg:gap-x-10 items-start">
-          <div className="mb-3 justify-self-center lg:justify-self-start lg:col-start-1 lg:row-start-1"><SectionLabel>Features</SectionLabel></div>
           <h2 className="mb-8 md:mb-10 lg:mb-8 lg:col-start-1 lg:row-start-2 text-center lg:text-left justify-self-center lg:justify-self-start font-serif font-medium text-[32px] md:text-[44px] lg:text-[38px] xl:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[20ch] lg:max-w-none lg:!text-nowrap">Everything you need<br className="hidden lg:block" /> to keep in touch.</h2>
           <ul className="lg:col-start-1 lg:row-start-3 flex flex-col gap-2.5" aria-label="Features">
             {FEATURES.map((f, i) => {
@@ -253,7 +250,9 @@ function Features() {
                     <div className="px-4 pb-4 md:px-5 md:pb-5 -mt-1 flex flex-col gap-3 rise">
                       <p className="text-fg-2 text-[15px] lg:pl-[54px]">{f.text}</p>
                       {/* Phone: the screenshot sits inside the open item */}
-                      <div className="lg:hidden rounded-xl border border-line overflow-hidden">{shot(i)}</div>
+                      <div className="lg:hidden mx-auto w-[min(240px,70%)] rounded-[28px] border-[6px] border-ink bg-ink shadow-lift overflow-hidden">
+                        <img src={IMG(f.phone)} alt={`NextCup on a phone: ${f.title}`} width={540} height={1080} loading="lazy" className="block w-full h-auto rounded-[22px]" />
+                      </div>
                     </div>
                   )}
                 </li>
@@ -316,25 +315,25 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
     <section className="gutter relative overflow-hidden dot-grid">
       <div aria-hidden="true" className="absolute inset-0 pointer-events-none"
         style={{ background: "radial-gradient(45% 60% at 80% 40%, color-mix(in oklab, var(--peach) 55%, transparent), transparent 70%), radial-gradient(35% 50% at 10% 80%, color-mix(in oklab, var(--blue-soft) 55%, transparent), transparent 70%)" }} />
-      <div className="relative mx-auto max-w-[1180px] pt-8 pb-12 md:pt-10 md:pb-16 lg:pt-12 grid gap-8 lg:gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-center">
-        <div className="flex flex-col gap-5 text-center lg:text-left items-center lg:items-start">
+      <div className="relative mx-auto max-w-[1180px] pt-4 pb-8 md:pt-10 md:pb-16 lg:pt-12 grid gap-3 md:gap-8 lg:gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-center">
+        <div className="flex flex-col gap-2.5 md:gap-5 text-center lg:text-left items-center lg:items-start">
           <p className="font-sans font-semibold text-[clamp(13px,3.9vw,16px)] md:text-[20px] lg:text-[22px] leading-snug tracking-[-0.005em] whitespace-nowrap">
             <span className="font-normal text-fg-3">Not a coffee chat tracker.</span>{" "}
             <span className="font-bold text-brand">A relationship keeper.</span>
           </p>
           {/* Fixed line breaks keep "connections warm" together so the steam never overlaps the line above. */}
-          <h1 className="font-serif font-medium text-[clamp(30px,9.2vw,40px)] leading-[1.06] md:text-[58px] lg:text-[50px] xl:text-[60px] tracking-[-0.02em] whitespace-nowrap">
+          <h1 className="font-serif font-medium text-[clamp(28px,8.4vw,36px)] leading-[1.05] md:text-[58px] lg:text-[50px] xl:text-[60px] tracking-[-0.02em] whitespace-nowrap">
             Keep your<br />connections <WarmWord /><br />with <BrandWord />
           </h1>
-          <p className="text-fg-2 text-[16px] md:text-[18px] max-w-[48ch]">
+          <p className="text-fg-2 text-[14px] leading-snug md:leading-normal md:text-[18px] max-w-[48ch]">
             NextCup remembers what you talked about, reminds you when to reach out, and suggests what to say, so connections last for years.
           </p>
-          <div className="flex flex-row flex-wrap justify-center lg:justify-start items-center gap-x-4 gap-y-2 sm:gap-5 mt-1">
-            <Button variant="primary" size="lg" iconRight="arrow_forward" onClick={onStart} className="rounded-full px-5 sm:px-7">
+          <div className="flex flex-row flex-wrap justify-center lg:justify-start items-center gap-x-4 gap-y-2 sm:gap-5 md:mt-1">
+            <Button variant="primary" size="lg" iconRight="arrow_forward" onClick={onStart} className="rounded-full !h-10 !px-5 !text-[14px] md:!h-12 md:!px-7 md:!text-[15px]">
               {signedIn ? "Open your workspace" : "Start for free"}
             </Button>
             <a href="#how" onClick={(e) => { e.preventDefault(); document.getElementById("demo")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" }); }}
-              className="text-[15px] font-semibold text-fg-2 hover:text-fg rounded-md">See how it works ↓</a>
+              className="text-[14px] md:text-[15px] font-semibold text-fg-2 hover:text-fg rounded-md">See how it works ↓</a>
           </div>
         </div>
 
@@ -355,7 +354,7 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
             shown === 2 ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3 pointer-events-none")}>
             <MemoryCard />
           </div>
-          <Steps act={shown} onPick={pick} auto={!reduced} className="mt-4" />
+          <Steps act={shown} onPick={pick} auto={!reduced} className="mt-2 md:mt-4" />
           {/* Phone: the card appears below the steps, so the step labels stay readable */}
           <div className="md:hidden mt-4">
             <div className={cx("transition-all duration-700 ease-[cubic-bezier(.22,1,.36,1)]",

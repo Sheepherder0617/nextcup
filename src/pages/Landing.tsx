@@ -232,24 +232,24 @@ function Features() {
     <section className="gutter bg-card-2 border-y border-line">
       <div className="mx-auto max-w-[1180px] py-14 md:py-20">
         {/* Desktop: label, headline and list on the left; the screenshot on the right starts level with the headline. */}
-        <div className="grid lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:grid-rows-[auto_auto_1fr] lg:gap-x-10 items-start">
-          <h2 className="mb-8 md:mb-10 lg:mb-8 lg:col-start-1 lg:row-start-2 text-center lg:text-left justify-self-center lg:justify-self-start font-serif font-medium text-[32px] md:text-[44px] lg:text-[38px] xl:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[20ch] lg:max-w-none lg:!text-nowrap">Everything you need<br className="hidden lg:block" /> to keep in touch.</h2>
-          <ul className="lg:col-start-1 lg:row-start-3 flex flex-col gap-2.5" aria-label="Features">
+        <div className="grid lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)] lg:grid-rows-[auto_auto_1fr] lg:gap-x-10 xl:gap-x-12 items-start">
+          <h2 className="mb-8 md:mb-10 lg:mb-8 lg:col-start-1 lg:row-start-2 text-center lg:text-left justify-self-center lg:justify-self-start font-serif font-medium text-[32px] md:text-[44px] lg:text-[38px] xl:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[20ch] lg:max-w-none lg:!text-nowrap">Everything you<br className="hidden lg:block" /> need to keep<br className="hidden lg:block" /> in touch.</h2>
+          <ul className="lg:col-start-1 lg:row-start-3 flex flex-col gap-2.5 lg:gap-2" aria-label="Features">
             {FEATURES.map((f, i) => {
               const open = active === i && !collapsed;
               return (
-                <li key={f.title} className={cx("rounded-2xl border transition", open ? "bg-card-2 border-line-2 shadow-soft" : "border-line hover:bg-card-2/60")}>
+                <li key={f.title} className={cx("rounded-2xl border bg-card transition", open ? "border-brand-2 shadow-lift" : "border-line-2 shadow-soft hover:border-brand-2/60")}>
                   <button type="button" onClick={() => { if (active === i) setCollapsed(!collapsed); else { setActive(i); setCollapsed(false); } }} aria-expanded={open}
-                    className="w-full text-left flex items-center gap-3.5 px-4 py-3.5 md:px-5 md:py-4 rounded-2xl">
-                    <span className={cx("grid place-items-center shrink-0 w-10 h-10 rounded-xl transition", open ? "bg-ink text-on-ink" : "bg-peach text-on-peach")}>
-                      <Icon name={f.icon} className="text-[20px]" />
+                    className="w-full text-left flex items-center gap-3.5 lg:gap-3 px-4 py-3.5 md:px-5 md:py-4 lg:px-4 lg:py-2.5 rounded-2xl">
+                    <span className={cx("grid place-items-center shrink-0 w-10 h-10 lg:w-8 lg:h-8 rounded-xl lg:rounded-lg transition", open ? "bg-ink text-on-ink" : "bg-peach text-on-peach")}>
+                      <Icon name={f.icon} className="text-[20px] lg:text-[18px]" />
                     </span>
-                    <span className="flex-1 text-[16px] md:text-[17px] font-semibold">{f.title}</span>
+                    <span className="flex-1 text-[16px] md:text-[17px] lg:text-[15px] font-semibold">{f.title}</span>
                     <span className="lg:hidden flex"><Icon name="expand_more" className={cx("text-[22px] text-fg-3 transition-transform", open && "rotate-180")} /></span>
                   </button>
                   {open && (
-                    <div className="px-4 pb-4 md:px-5 md:pb-5 -mt-1 flex flex-col gap-3 rise">
-                      <p className="text-fg-2 text-[15px] lg:pl-[54px]">{f.text}</p>
+                    <div className="px-4 pb-4 md:px-5 md:pb-5 lg:px-4 lg:pb-3 -mt-1 flex flex-col gap-3 rise">
+                      <p className="text-fg-2 text-[15px] lg:text-[14px] lg:pl-[44px]">{f.text}</p>
                       {/* Phone: the screenshot sits inside the open item */}
                       <div className="lg:hidden mx-auto w-[min(240px,70%)] rounded-[28px] border-[6px] border-ink bg-ink shadow-lift overflow-hidden">
                         <img src={IMG(f.phone)} alt={`NextCup on a phone: ${f.title}`} width={540} height={1080} loading="lazy" className="block w-full h-auto rounded-[22px]" />
@@ -326,12 +326,15 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
           <h1 className="my-2 md:my-0 font-serif font-medium text-[clamp(30px,9vw,38px)] leading-[1.05] md:text-[58px] lg:text-[50px] xl:text-[60px] tracking-[-0.02em] whitespace-nowrap">
             Keep your<br />connections <WarmWord /><br />with <BrandWord />
           </h1>
-          <p className="text-fg-2 text-[14px] leading-snug md:leading-normal md:text-[18px] max-w-[48ch]">
-            NextCup remembers what you talked about, reminds you when to reach out, and suggests what to say, so connections last for years.
+          <p className="text-fg-2 text-[14px] leading-snug md:leading-normal md:text-[18px] max-w-[48ch] lg:max-w-none lg:whitespace-nowrap">
+            {/* Desktop: fixed three-line break */}
+            NextCup remembers what you talked about,<br className="hidden lg:block" /> reminds you when to reach out, and suggests what to say,<br className="hidden lg:block" /> so connections last for years.
           </p>
           <div className="flex flex-row flex-wrap justify-center lg:justify-start items-center gap-x-4 gap-y-2 sm:gap-5 md:mt-1">
-            <Button variant="primary" size="lg" iconRight="arrow_forward" onClick={onStart} className="rounded-full !h-10 !px-5 !text-[14px] md:!h-12 md:!px-7 md:!text-[15px]">
+            <Button variant="primary" size="lg" onClick={onStart} className="rounded-full !h-10 !px-5 !text-[14px] md:!h-12 md:!px-7 md:!text-[15px]">
               {signedIn ? "Open your workspace" : "Start for free"}
+              {/* Arrow on phones and tablets only */}
+              <Icon name="arrow_forward" className="text-[18px] lg:!hidden" />
             </Button>
             <a href="#how" onClick={(e) => { e.preventDefault(); document.getElementById("demo")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" }); }}
               className="text-[14px] md:text-[15px] font-semibold text-fg-2 hover:text-fg rounded-md">See how it works ↓</a>

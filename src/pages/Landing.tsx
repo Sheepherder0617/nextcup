@@ -131,12 +131,30 @@ function BrandWord() {
 
 /** "warm", with a slow glowing gradient and coffee steam rising from it. */
 function WarmWord() {
+  // Illustrated steam: three tapered, gently curling wisps that fade toward the top and rise out of sync.
+  const wisps = [
+    { d: "M20 58 C12 48, 28 40, 20 30 S 12 14, 22 4", w: 4.2, dur: 4.2, delay: 0 },
+    { d: "M34 58 C42 50, 26 42, 34 32 S 44 18, 36 8", w: 4.8, dur: 3.6, delay: 1.3 },
+    { d: "M47 58 C42 52, 52 46, 47 38 S 44 28, 49 22", w: 3.6, dur: 3.2, delay: 2.4 },
+  ];
   return (
     <span className="relative inline-block">
-      <svg aria-hidden="true" viewBox="0 0 60 40" className="absolute left-1/2 -translate-x-1/2 bottom-[78%] w-[0.95em] h-[0.62em] overflow-visible">
-        {["M14 38c-6-8 6-12 0-20s4-12 0-18", "M30 38c-6-8 6-12 0-20s4-12 0-18", "M46 38c-6-8 6-12 0-20s4-12 0-18"].map((d, i) => (
-          <path key={d} d={d} className="warm-steam" style={{ animationDelay: `${i * 0.7}s` }} />
-        ))}
+      <svg aria-hidden="true" viewBox="0 0 60 60" className="absolute left-1/2 -translate-x-1/2 bottom-[80%] w-[0.9em] h-[0.9em] overflow-visible">
+        <defs>
+          <linearGradient id="steam-fade" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0" stopColor="var(--brand-2)" stopOpacity="0" />
+            <stop offset=".18" stopColor="var(--brand-2)" stopOpacity=".55" />
+            <stop offset=".6" stopColor="var(--brand-2)" stopOpacity=".3" />
+            <stop offset="1" stopColor="var(--brand-2)" stopOpacity="0" />
+          </linearGradient>
+          <filter id="steam-soft" x="-50%" y="-20%" width="200%" height="140%"><feGaussianBlur stdDeviation=".7" /></filter>
+        </defs>
+        <g filter="url(#steam-soft)">
+          {wisps.map((w) => (
+            <path key={w.d} d={w.d} className="warm-steam" stroke="url(#steam-fade)" strokeWidth={w.w}
+              style={{ animationDuration: `${w.dur}s`, animationDelay: `${w.delay}s` }} />
+          ))}
+        </g>
       </svg>
       <span className="warm-text">warm</span>
     </span>

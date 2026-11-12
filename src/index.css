@@ -151,11 +151,19 @@ input, textarea, select { font: inherit; color: inherit; }
 }
 @keyframes warm-glow { 0%,100% { background-position: 100% 0; } 50% { background-position: 0% 0; } }
 .warm-steam {
-  fill: none; stroke: var(--brand-2); stroke-width: 3.5; stroke-linecap: round; opacity: 0;
-  animation: warm-steam 2.8s ease-in-out infinite;
+  fill: none; stroke-linecap: round; opacity: 0;
+  transform-box: fill-box; transform-origin: 50% 100%;
+  stroke-dasharray: 120; stroke-dashoffset: 120;
+  animation: warm-steam 3.6s cubic-bezier(.4,0,.3,1) infinite;
 }
-@keyframes warm-steam { 0% { opacity: 0; transform: translateY(8px); } 35% { opacity: .55; } 100% { opacity: 0; transform: translateY(-10px); } }
-@media (prefers-reduced-motion: reduce) { .warm-steam { opacity: .4; } }
+@keyframes warm-steam {
+  0%   { opacity: 0;  stroke-dashoffset: 120; transform: translate(0, 6px) scale(.9, .8) skewX(0deg); }
+  25%  { opacity: 1; }
+  55%  { stroke-dashoffset: 0; transform: translate(1px, -1px) scale(1, 1) skewX(-4deg); }
+  80%  { opacity: .7; transform: translate(-1px, -5px) scale(1.04, 1.08) skewX(3deg); }
+  100% { opacity: 0;  stroke-dashoffset: 0; transform: translate(0, -9px) scale(1.08, 1.15) skewX(0deg); }
+}
+@media (prefers-reduced-motion: reduce) { .warm-steam { opacity: .6; stroke-dashoffset: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

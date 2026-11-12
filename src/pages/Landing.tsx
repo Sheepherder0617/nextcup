@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useStore } from "../lib/store";
 import { useNav } from "../lib/nav";
 import { Button, Icon, cx } from "../components/ui";
@@ -26,11 +26,13 @@ const STEPS = [
   { n: "3", title: "Reconnect", text: "We remind you to say thank you within a day and check in weeks later, with a topic and a draft message based on what you discussed." },
 ];
 
-const FEATURES = [
-  { icon: "timeline", title: "Full history with every contact", text: "Every meeting, note and message with each person, in one place. Glance at it before you say hi." },
-  { icon: "notifications_active", title: "Follow-ups that never slip", text: "Thank-you notes, check-ins and gentle nudges, timed so reaching out feels natural." },
-  { icon: "auto_awesome", title: "Know what to say", text: "AI suggests talking points and drafts messages from your own notes, in your voice." },
-  { icon: "assignment", title: "Prep before every chat", text: "A one-page brief with smart questions, common ground and an agenda." },
+// Product tour: one silent screen recording (fictional demo data) with clickable chapters.
+// `at` is where each chapter starts in public/landing/demo.mp4, in seconds.
+const TOUR = [
+  { at: 0, icon: "timeline", title: "Every conversation, remembered", text: "Each contact keeps a timeline of chats, notes and messages. Glance at it before you say hi." },
+  { at: 7.9, icon: "auto_awesome", title: "Follow-ups written for you", text: "AI picks a good moment to reach out and drafts messages from what you discussed." },
+  { at: 19.6, icon: "calendar_month", title: "One calendar for every touchpoint", text: "Coffee chats, thank-you notes and check-ins in one timeline, with reminders." },
+  { at: 24.8, icon: "edit_note", title: "Messy notes, clean debrief", text: "Jot rough notes after a chat. AI turns them into clear takeaways." },
 ];
 
 const PRIVACY = [
@@ -100,26 +102,8 @@ export function Landing() {
         </div>
       </section>
 
-      {/* ---------- Features ---------- */}
-      <section className="gutter bg-card-2 border-y border-line">
-        <div className="mx-auto max-w-[1180px] py-14 md:py-20">
-          <div className="flex flex-col items-center text-center gap-3 mb-10 md:mb-12">
-            <SectionLabel>What you get</SectionLabel>
-            <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[22ch]">Your memory for every professional connection.</h2>
-          </div>
-          <div className="grid gap-4 md:gap-6 sm:grid-cols-2">
-            {FEATURES.map((f) => (
-              <div key={f.title} className="rounded-2xl bg-card border border-line p-5 md:p-7 flex gap-4 shadow-soft">
-                <span className="grid place-items-center shrink-0 w-11 h-11 rounded-xl bg-peach text-on-peach"><Icon name={f.icon} className="text-[22px]" /></span>
-                <div className="flex flex-col gap-1.5 min-w-0">
-                  <h3 className="text-[18px] font-semibold">{f.title}</h3>
-                  <p className="text-fg-2 text-[15px]">{f.text}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ---------- Product tour ---------- */}
+      <Tour />
 
       {/* ---------- Privacy ---------- */}
       <section className="gutter">
@@ -177,6 +161,92 @@ function WarmWord() {
       </svg>
       <span className="warm-text">warm</span>
     </span>
+  );
+}
+
+function Tour() {
+  const reduced = useReducedMotion();
+  const video = useRef<HTMLVideoElement>(null);
+  const [active, setActive] = useState(0);
+  const [sound, setSound] = useState(false);
+
+  // Play only while the tour is on screen (saves data and battery); never autoplay for reduced motion.
+  useEffect(() => {
+    const v = video.current;
+    if (!v || reduced || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) v.play().catch(() => {}); else v.pause(); }, { threshold: 0.35 });
+    io.observe(v);
+    return () => io.disconnect();
+  }, [reduced]);
+
+  function onTime() {
+    const t = video.current?.currentTime ?? 0;
+    let i = 0;
+    TOUR.forEach((c, k) => { if (t >= c.at) i = k; });
+    if (i !== active) setActive(i);
+  }
+  // Browsers only autoplay muted video, so sound is opt-in.
+  function toggleSound() {
+    const v = video.current;
+    if (!v) return;
+    v.muted = sound;
+    setSound(!sound);
+    if (!sound) v.play().catch(() => {});
+  }
+  function jump(i: number) {
+    const v = video.current;
+    setActive(i);
+    if (!v) return;
+    v.currentTime = TOUR[i].at + 0.05;
+    v.play().catch(() => {});
+  }
+
+  return (
+    <section className="gutter bg-card-2 border-y border-line">
+      <div className="mx-auto max-w-[1180px] py-14 md:py-20">
+        <div className="flex flex-col items-center text-center gap-3 mb-8 md:mb-12">
+          <SectionLabel>See it in action</SectionLabel>
+          <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[22ch]">Your whole network, one tap away.</h2>
+        </div>
+        <div className="grid gap-5 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.1fr)] items-start">
+          <ol className="order-2 lg:order-1 grid grid-cols-2 lg:grid-cols-1 gap-2.5 lg:gap-3" aria-label="Tour chapters">
+            {TOUR.map((c, i) => (
+              <li key={c.title}>
+                <button type="button" onClick={() => jump(i)} aria-current={active === i ? "step" : undefined}
+                  className={cx("w-full h-full text-left rounded-2xl border p-3.5 lg:p-4 flex flex-col lg:flex-row gap-2 lg:gap-3.5 transition",
+                    active === i ? "bg-card border-line-2 shadow-soft" : "border-transparent hover:bg-card/60")}>
+                  <span className={cx("grid place-items-center shrink-0 w-9 h-9 lg:w-10 lg:h-10 rounded-xl transition", active === i ? "bg-ink text-on-ink" : "bg-peach text-on-peach")}>
+                    <Icon name={c.icon} className="text-[20px]" />
+                  </span>
+                  <span className="flex flex-col gap-1 min-w-0">
+                    <span className="text-[14px] lg:text-[16px] font-semibold leading-snug">{c.title}</span>
+                    <span className="hidden lg:block text-fg-2 text-[14px]">{c.text}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ol>
+          <figure className="relative order-1 lg:order-2 rounded-2xl border border-line-2 bg-card shadow-lift overflow-hidden">
+            <div aria-hidden="true" className="h-8 md:h-9 px-3 flex items-center gap-1.5 border-b border-line bg-header">
+              <span className="w-2.5 h-2.5 rounded-full bg-line-2" /><span className="w-2.5 h-2.5 rounded-full bg-line-2" /><span className="w-2.5 h-2.5 rounded-full bg-line-2" />
+              <span className="ml-3 flex-1 max-w-[260px] h-5 rounded-md bg-sunken text-[11px] text-fg-3 grid place-items-center">NextCup</span>
+            </div>
+            <video ref={video} poster={IMG("demo-poster")} muted playsInline loop preload="metadata"
+              controls={reduced} onTimeUpdate={onTime} width={1280} height={800} className="block w-full h-auto bg-card"
+              aria-label="Screen recording of NextCup: a contact's history, AI follow-up ideas, the calendar, and turning rough notes into a debrief.">
+              <source src="/landing/demo.webm" type="video/webm" />
+              <source src="/landing/demo.mp4" type="video/mp4" />
+            </video>
+            <button type="button" onClick={toggleSound} aria-pressed={sound} aria-label={sound ? "Mute demo" : "Play demo with sound"}
+              className="absolute right-2 top-1 md:top-1.5 inline-flex items-center gap-1 h-6 px-2.5 rounded-full bg-ink text-on-ink text-[12px] font-semibold hover:opacity-90 transition">
+              <Icon name={sound ? "volume_up" : "volume_off"} className="text-[15px]" />{sound ? "Sound on" : "Turn on sound"}
+            </button>
+            <figcaption className="lg:hidden px-4 py-3 text-[14px] text-fg-2 border-t border-line">{TOUR[active].text}</figcaption>
+          </figure>
+        </div>
+        <p className="mt-4 text-center text-[12px] text-fg-3">Demo with made-up contacts.</p>
+      </div>
+    </section>
   );
 }
 

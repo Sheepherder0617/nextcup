@@ -7,9 +7,9 @@ import { Wordmark } from "../components/Logo";
 type Mode = "signin" | "signup" | "forgot";
 
 /** Email + password sign-in / sign-up (Supabase). Also handles choosing a new password after a reset link. */
-export function AuthPage() {
+export function AuthPage({ initialMode = "signup" }: { initialMode?: "signin" | "signup" }) {
   const { auth } = useStore();
-  const [mode, setMode] = useState<Mode>("signup");
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);

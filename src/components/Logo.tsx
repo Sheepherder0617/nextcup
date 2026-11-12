@@ -43,7 +43,6 @@ export function Wordmark({ compact = false }: { compact?: boolean }) {
       <span className="grid place-items-center w-10 h-10 rounded-xl bg-[#fffaf6] border border-line shadow-soft"><LogoMark size={30} /></span>
       <span className="leading-none">
         <span className="block font-serif text-[22px] font-semibold tracking-[-0.01em] text-fg">NextCup</span>
-        {!compact && <span className="block text-[10px] font-bold tracking-[0.14em] text-fg-3 mt-1">NEURAL NETWORKING</span>}
       </span>
     </span>
   );

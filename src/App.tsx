@@ -18,7 +18,7 @@ import { AuthPage } from "./pages/Auth";
 
 // ---------- Hash router (plain "#name" or "#name-param") ----------
 const PARAM_ROUTES: RouteName[] = ["contact", "edit", "schedule"];
-const ALL: RouteName[] = ["welcome", "signup", "dashboard", "contacts", "add-contact", "contact", "edit", "calendar", "schedule", "profile"];
+const ALL: RouteName[] = ["welcome", "signup", "signin", "dashboard", "contacts", "add-contact", "contact", "edit", "calendar", "schedule", "profile"];
 
 function parseHash(): { name: RouteName | null; param?: string } {
   const h = decodeURIComponent(location.hash.replace(/^#/, ""));
@@ -66,11 +66,12 @@ function Shell() {
   const { auth } = store;
   if (auth.recovering) return <NavCtx.Provider value={nav}><AuthPage /></NavCtx.Provider>;
   if (auth.enabled && !auth.signedIn) {
-    return <NavCtx.Provider value={nav}>{!route.name || route.name === "welcome" ? <Landing /> : <AuthPage />}</NavCtx.Provider>;
+    return <NavCtx.Provider value={nav}>{!route.name || route.name === "welcome" ? <Landing /> : <AuthPage key={route.name ?? ""} initialMode={route.name === "signin" ? "signin" : "signup"} />}</NavCtx.Provider>;
   }
 
   // Default route
   let name = route.name;
+  if (name === "signin") name = "signup";
   if (!name) name = store.profile ? "dashboard" : auth.enabled ? "signup" : "welcome";
   if (!store.profile && !["welcome", "signup"].includes(name)) name = auth.enabled ? "signup" : "welcome";
   if (store.profile && auth.enabled && name === "signup") name = "dashboard";

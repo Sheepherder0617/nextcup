@@ -128,6 +128,21 @@ input, textarea, select { font: inherit; color: inherit; }
 @keyframes pulse-dot { 0%,100% { opacity: .35 } 50% { opacity: 1 } }
 .typing span { animation: pulse-dot 1.2s infinite; }
 .typing span:nth-child(2) { animation-delay: .2s } .typing span:nth-child(3) { animation-delay: .4s }
+/* Landing headline: "warm" glows and steams */
+.warm-text {
+  padding-right: .02em;
+  background: linear-gradient(100deg, var(--brand) 0%, #c26a2c 30%, #eaa05a 50%, #c26a2c 70%, var(--brand) 100%);
+  background-size: 260% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: warm-glow 6s ease-in-out infinite;
+}
+@keyframes warm-glow { 0%,100% { background-position: 100% 0; } 50% { background-position: 0% 0; } }
+.warm-steam {
+  fill: none; stroke: var(--brand-2); stroke-width: 3.5; stroke-linecap: round; opacity: 0;
+  animation: warm-steam 2.8s ease-in-out infinite;
+}
+@keyframes warm-steam { 0% { opacity: 0; transform: translateY(8px); } 35% { opacity: .55; } 100% { opacity: 0; transform: translateY(-10px); } }
+@media (prefers-reduced-motion: reduce) { .warm-steam { opacity: .4; } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }

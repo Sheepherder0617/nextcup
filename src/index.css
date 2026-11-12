@@ -130,7 +130,7 @@ input, textarea, select { font: inherit; color: inherit; }
 .typing span:nth-child(2) { animation-delay: .2s } .typing span:nth-child(3) { animation-delay: .4s }
 /* Landing headline: "warm" glows and steams */
 .warm-text {
-  font-style: italic; padding-right: .06em;
+  padding-right: .02em;
   background: linear-gradient(100deg, var(--brand) 0%, #c26a2c 30%, #eaa05a 50%, #c26a2c 70%, var(--brand) 100%);
   background-size: 260% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
   animation: warm-glow 6s ease-in-out infinite;
@@ -141,12 +141,6 @@ input, textarea, select { font: inherit; color: inherit; }
   animation: warm-steam 2.8s ease-in-out infinite;
 }
 @keyframes warm-steam { 0% { opacity: 0; transform: translateY(8px); } 35% { opacity: .55; } 100% { opacity: 0; transform: translateY(-10px); } }
-.brand-underline {
-  fill: none; stroke: var(--brand-2); stroke-width: 5; stroke-linecap: round;
-  stroke-dasharray: 1; stroke-dashoffset: 1; animation: brand-draw 1.1s cubic-bezier(.65,0,.35,1) .5s forwards;
-}
-@keyframes brand-draw { to { stroke-dashoffset: 0; } }
-@media (prefers-reduced-motion: reduce) { .brand-underline { stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) { .warm-steam { opacity: .4; } }
 
 @media (prefers-reduced-motion: reduce) {

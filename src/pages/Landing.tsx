@@ -162,16 +162,9 @@ export function Landing() {
   );
 }
 
-/** The app name in the headline: bold upright wordmark, two-tone, with a hand-drawn underline that draws in once. */
+/** The app name in the headline: italic terracotta, as in the original Stitch hero. */
 function BrandWord() {
-  return (
-    <span className="relative inline-block whitespace-nowrap font-semibold tracking-[-0.025em] not-italic">
-      Next<span className="text-brand">Cup</span>
-      <svg aria-hidden="true" viewBox="0 0 200 16" preserveAspectRatio="none" className="absolute left-[2%] right-[2%] -bottom-[0.08em] w-[96%] h-[0.2em] overflow-visible">
-        <path d="M3 11C40 4 92 3 133 6s52 4 64 1" className="brand-underline" pathLength={1} />
-      </svg>
-    </span>
-  );
+  return <em className="text-brand whitespace-nowrap">NextCup.</em>;
 }
 
 /** "warm", with a slow glowing gradient and coffee steam rising from it. */
@@ -183,7 +176,7 @@ function WarmWord() {
           <path key={d} d={d} className="warm-steam" style={{ animationDelay: `${i * 0.7}s` }} />
         ))}
       </svg>
-      <em className="warm-text">warm</em>
+      <span className="warm-text">warm</span>
     </span>
   );
 }
@@ -225,7 +218,7 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
         <div className="flex flex-col gap-5 text-center lg:text-left items-center lg:items-start">
           <p className="label-caps text-brand">The coffee chat tracker for students &amp; early-career professionals</p>
           <h1 className="font-serif font-medium text-[38px] leading-[1.06] md:text-[56px] lg:text-[60px] tracking-[-0.02em] max-w-[16ch]">
-            Keep your connections <WarmWord /> with <BrandWord />.
+            Keep your connections <WarmWord /> with <BrandWord />
           </h1>
           <p className="text-fg-2 text-[16px] md:text-[18px] max-w-[48ch]">
             NextCup remembers what you talked about, reminds you when to reach out, and suggests what to say, so the people you meet stay in your corner for years, not days.

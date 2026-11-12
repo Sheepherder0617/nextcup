@@ -41,7 +41,7 @@ export function ProfilePage() {
       </Card>
 
       <div role="tablist" aria-label="Profile sections" className="flex gap-2 overflow-x-auto pb-1 border-b border-line">
-        {([["overview", "Overview & Goals"], ["resume", "Resume & Background"], ["privacy", "Appearance"]] as const).map(([k, l]) => (
+        {([["overview", "Overview & Goals"], ["resume", "Resume & Background"], ["privacy", "Privacy/Appearance"]] as const).map(([k, l]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
             className={cx("h-9 px-4 rounded-lg text-sm font-semibold whitespace-nowrap border mb-2", tab === k ? "bg-ink text-on-ink border-transparent" : "bg-card border-line text-fg-2 hover:bg-card-2")}>{l}</button>
         ))}

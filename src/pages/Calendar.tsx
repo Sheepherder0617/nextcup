@@ -72,6 +72,10 @@ export function CalendarPage() {
         <div className="flex flex-col gap-4 min-w-0">
           <EmailReminders />
 
+          <div className="calendar-mobile-month">
+            <MiniMonth month={month} setMonth={setMonth} events={store.events} selected={day} onPick={(d) => { setDay(d === day ? null : d); setRange("all"); }} />
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
             <div className="w-full sm:w-52">
               <label htmlFor="cal-range" className="sr-only">Which events</label>
@@ -81,7 +85,7 @@ export function CalendarPage() {
                 <option value="all">All events ({counts.all})</option>
               </Select>
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" role="group" aria-label="Filter by type">
+            <div className="calendar-filter-scroll flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" role="group" aria-label="Filter by type">
               {(["all", "coffee", "thankyou", "followup"] as const).map((k) => (
                 <button key={k} type="button" aria-pressed={kind === k} onClick={() => setKind(k)}
                   className={cx("inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-[13px] font-semibold border whitespace-nowrap",
@@ -113,7 +117,7 @@ export function CalendarPage() {
           ))}
         </div>
 
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-24">
+        <aside className="calendar-sidebar flex flex-col gap-4 lg:sticky lg:top-24">
           <MiniMonth month={month} setMonth={setMonth} events={store.events} selected={day} onPick={(d) => { setDay(d === day ? null : d); setRange("all"); }} />
         </aside>
       </div>

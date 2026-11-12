@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useStore } from "../lib/store";
 import { useNav } from "../lib/nav";
 import { Avatar, Button, Card, Empty, Icon, cx } from "../components/ui";
-import { GoalChips, MetLine, RoleChips } from "../components/bits";
+import { GoalChips, RoleChips } from "../components/bits";
 import { lastContactOf } from "../lib/derive";
 import { formatDate } from "../lib/date";
 import type { RoleType } from "../lib/types";
@@ -56,7 +56,7 @@ export function Contacts() {
           <input id="contact-search" value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} placeholder="Search by name, company, role or tags…"
             className="w-full h-11 rounded-lg bg-sunken pl-10 pr-3 outline-none focus:ring-2 focus:ring-brand-2" />
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-1 lg:pb-0 -mx-1 px-1" role="group" aria-label="Filter by relationship">
+        <div className="contact-filter-scroll flex gap-2 overflow-x-auto pb-1 lg:pb-0 -mx-1 px-1" role="group" aria-label="Filter by relationship">
           {FILTERS.map((f) => {
             const n = f.key === "all" ? store.contacts.length : store.contacts.filter((c) => c.roleTypes.includes(f.key as RoleType)).length;
             return (
@@ -105,7 +105,7 @@ export function Contacts() {
                   </>}
                   <p className="text-[13px] text-fg-2">Last contact: <b className="text-fg tnum">{last ? formatDate(last) : "Not yet"}</b></p>
                 </div>
-                <Button variant="secondary" iconRight="arrow_forward" onClick={() => go("contact", c.id)} className="justify-self-start md:justify-self-end">Open Profile & AI Notes</Button>
+                <Button variant="secondary" iconRight="arrow_forward" onClick={() => go("contact", c.id)} className="contact-profile-button justify-self-start md:justify-self-end">Open Profile & AI Notes</Button>
               </Card>
             </li>
           ))}

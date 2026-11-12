@@ -60,14 +60,14 @@ export function Dashboard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+      <div className="dashboard-stats grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {stats.map((s) => (
           <Card key={s.label} className="px-4 py-3 flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="label-caps text-fg-3">{s.label}</p>
               <p className="font-serif text-[20px] md:text-[22px] font-semibold mt-0.5 tnum">{s.value}</p>
             </div>
-            <span className="grid place-items-center w-9 h-9 rounded-lg shrink-0 bg-peach text-on-peach"><Icon name={s.icon} className="text-[20px]" /></span>
+            <span className="dashboard-stat-icon grid place-items-center w-9 h-9 rounded-lg shrink-0 bg-peach text-on-peach"><Icon name={s.icon} className="text-[20px]" /></span>
           </Card>
         ))}
       </div>

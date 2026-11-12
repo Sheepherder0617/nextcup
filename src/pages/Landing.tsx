@@ -35,8 +35,7 @@ const FEATURES = [
 
 const PRIVACY = [
   { img: "privacy-lock", title: "Private by default", text: "Only you can see your contacts and notes." },
-  { img: "privacy-canada", title: "Stored in Canada", text: "Your account, contacts and notes are stored on servers in Canada." },
-  { img: "privacy-ai", title: "AI only when you ask", text: "Notes are sent to our AI provider, outside Canada, only when you press an AI button." },
+  { img: "privacy-ai", title: "AI only when you ask", text: "Your notes are only shared with our AI provider when you press an AI button." },
 ];
 
 export function Landing() {
@@ -52,7 +51,7 @@ export function Landing() {
           <a href="#welcome" className="rounded-xl"><span className="sm:hidden"><Wordmark compact /></span><span className="hidden sm:block"><Wordmark /></span></a>
           <div className="flex items-center gap-1.5 md:gap-2">
             {!profile && <Button variant="ghost" size="sm" onClick={signIn} className="rounded-full h-9 md:px-4">Sign in</Button>}
-            <Button variant="primary" size="sm" onClick={start} className="rounded-full h-9 px-4">{profile ? "Open app" : "Start for free"}</Button>
+            {profile && <Button variant="primary" size="sm" onClick={start} className="rounded-full h-9 px-4">Open app</Button>}
           </div>
         </div>
       </header>
@@ -129,7 +128,7 @@ export function Landing() {
             <SectionLabel>Your data, your network</SectionLabel>
             <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em]">Your network belongs to you.</h2>
           </div>
-          <div className="grid gap-4 md:gap-6 md:grid-cols-3">
+          <div className="grid gap-4 md:gap-6 md:grid-cols-2 max-w-[820px] mx-auto">
             {PRIVACY.map((p) => (
               <div key={p.title} className="rounded-2xl border border-line bg-card-2 p-5 md:p-7 flex md:flex-col items-center md:text-center gap-4">
                 <img src={IMG(p.img)} alt="" loading="lazy" width={360} height={360} className="w-20 h-20 md:w-36 md:h-36 shrink-0" />
@@ -156,7 +155,7 @@ export function Landing() {
       </section>
 
       <footer className="gutter border-t border-line mt-auto">
-        <p className="mx-auto max-w-[1180px] py-8 text-center text-[13px] text-fg-3">NextCup · Built by students at Rotman, in Toronto.</p>
+        <p className="mx-auto max-w-[1180px] py-8 text-center text-[13px] text-fg-3">NextCup · Built by the CATalysts at Rotman, in Toronto.</p>
       </footer>
     </div>
   );

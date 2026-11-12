@@ -199,13 +199,11 @@ input, textarea, select { font: inherit; color: inherit; }
   .log-note-meta, .log-note-headline, .log-note-card > .border-t { width: 100%; text-align: left; }
   .log-note-actions { width: 100%; justify-content: flex-start; }
   .log-note-view { margin-left: auto; }
-  .contact-profile-avatar > span { width: 68px !important; height: 68px !important; font-size: 27.2px !important; }
+  .contact-profile-avatar > span { width: 52px !important; height: 52px !important; font-size: 20px !important; }
   .contact-profile-name { font-size: 27px; }
   .contact-edit-desktop { display: none; }
   .contact-last-row { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; }
   .contact-edit-mobile { display: inline-flex; flex-shrink: 0; }
-  .contact-profile-met-line { width: calc(100% + 84px); margin-top: 8px; margin-left: -84px; }
-  .contact-profile-links { width: calc(100% + 84px); margin-left: -84px; }
   .calendar-mobile-month { display: block; }
   .calendar-sidebar { display: none; }
   .contact-filter-scroll, .calendar-filter-scroll { padding-bottom: 12px; }

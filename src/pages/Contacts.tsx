@@ -46,20 +46,20 @@ export function Contacts() {
         </h1>
         {/* Phone: compact square button; desktop: regular button */}
         <button type="button" onClick={() => go("add-contact")}
-          className="md:hidden shrink-0 w-[68px] h-[64px] rounded-2xl bg-ink text-on-ink shadow-soft flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold leading-tight hover:opacity-90">
-          <Icon name="person_add" className="text-[20px]" /><span>Add New</span><span>Contact</span>
+          className="md:hidden shrink-0 w-[56px] h-[52px] rounded-2xl bg-ink text-on-ink shadow-soft flex flex-col items-center justify-center gap-0.5 text-[12px] font-semibold leading-tight hover:opacity-90">
+          <Icon name="person_add" className="text-[20px]" /><span>Add</span>
         </button>
         <span className="hidden md:block"><Button variant="primary" icon="person_add" onClick={() => go("add-contact")}>Add New Contact</Button></span>
       </div>
 
-      <Card className="p-0 md:p-3 bg-transparent md:bg-card border-0 md:border shadow-none md:shadow-soft flex flex-col lg:flex-row gap-2.5 md:gap-3 lg:items-center">
+      <div className="md:p-3 md:bg-card md:rounded-2xl md:border md:border-line md:shadow-soft flex flex-col lg:flex-row gap-2.5 md:gap-3 lg:items-center min-w-0">
         <div className="relative flex-1 min-w-0">
           <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-fg-3 text-[20px]" />
           <label htmlFor="contact-search" className="sr-only">Search contacts</label>
           <input id="contact-search" value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} placeholder="Search by name, company, role or tags…"
             className="w-full h-11 rounded-xl md:rounded-lg bg-card md:bg-sunken border border-line md:border-0 pl-10 pr-3 outline-none focus:ring-2 focus:ring-brand-2" />
         </div>
-        <div className="contact-filter-scroll flex gap-2 overflow-x-auto pb-1 lg:pb-0 -mx-1 px-1" role="group" aria-label="Filter by relationship">
+        <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-4 px-4 md:mx-0 md:px-0 lg:pb-0" role="group" aria-label="Filter by relationship">
           {FILTERS.map((f) => {
             const n = f.key === "all" ? store.contacts.length : store.contacts.filter((c) => c.roleTypes.includes(f.key as RoleType)).length;
             return (
@@ -71,7 +71,7 @@ export function Contacts() {
             );
           })}
         </div>
-      </Card>
+      </div>
 
       {store.contacts.length === 0 ? (
         <Card><Empty icon="group_add" title="Your network starts with one name"

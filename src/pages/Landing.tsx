@@ -196,7 +196,7 @@ function Demo() {
   }
 
   return (
-    <section id="how" className="gutter bg-card-2 border-y border-line">
+    <section id="how" className="gutter">
       <div className="mx-auto max-w-[1180px] py-14 md:py-20">
         <div className="flex flex-col items-center text-center gap-3 mb-8 md:mb-10">
           <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[22ch]">Meet once. Stay connected for good.</h2>
@@ -223,22 +223,23 @@ function Demo() {
 
 function Features() {
   const [active, setActive] = useState(0);
+  const [collapsed, setCollapsed] = useState(false);
   const shot = (i: number, eager = false) => (
     <img src={IMG(FEATURES[i].img)} alt={`NextCup screen: ${FEATURES[i].title}`} width={1600} height={1000}
       loading={eager ? "eager" : "lazy"} className="block w-full h-auto" />
   );
   return (
-    <section className="gutter">
+    <section className="gutter bg-card-2 border-y border-line">
       <div className="mx-auto max-w-[1180px] py-14 md:py-20">
         {/* Desktop: label, headline and list on the left; the screenshot on the right starts level with the headline. */}
         <div className="grid lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:grid-rows-[auto_auto_1fr] lg:gap-x-10 items-start">
           <h2 className="mb-8 md:mb-10 lg:mb-8 lg:col-start-1 lg:row-start-2 text-center lg:text-left justify-self-center lg:justify-self-start font-serif font-medium text-[32px] md:text-[44px] lg:text-[38px] xl:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[20ch] lg:max-w-none lg:!text-nowrap">Everything you need<br className="hidden lg:block" /> to keep in touch.</h2>
           <ul className="lg:col-start-1 lg:row-start-3 flex flex-col gap-2.5" aria-label="Features">
             {FEATURES.map((f, i) => {
-              const open = active === i;
+              const open = active === i && !collapsed;
               return (
                 <li key={f.title} className={cx("rounded-2xl border transition", open ? "bg-card-2 border-line-2 shadow-soft" : "border-line hover:bg-card-2/60")}>
-                  <button type="button" onClick={() => setActive(i)} aria-expanded={open}
+                  <button type="button" onClick={() => { if (active === i) setCollapsed(!collapsed); else { setActive(i); setCollapsed(false); } }} aria-expanded={open}
                     className="w-full text-left flex items-center gap-3.5 px-4 py-3.5 md:px-5 md:py-4 rounded-2xl">
                     <span className={cx("grid place-items-center shrink-0 w-10 h-10 rounded-xl transition", open ? "bg-ink text-on-ink" : "bg-peach text-on-peach")}>
                       <Icon name={f.icon} className="text-[20px]" />
@@ -317,12 +318,12 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
         style={{ background: "radial-gradient(45% 60% at 80% 40%, color-mix(in oklab, var(--peach) 55%, transparent), transparent 70%), radial-gradient(35% 50% at 10% 80%, color-mix(in oklab, var(--blue-soft) 55%, transparent), transparent 70%)" }} />
       <div className="relative mx-auto max-w-[1180px] pt-4 pb-8 md:pt-10 md:pb-16 lg:pt-12 grid gap-3 md:gap-8 lg:gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-center">
         <div className="flex flex-col gap-2.5 md:gap-5 text-center lg:text-left items-center lg:items-start">
-          <p className="font-sans font-semibold text-[clamp(13px,3.9vw,16px)] md:text-[20px] lg:text-[22px] leading-snug tracking-[-0.005em] whitespace-nowrap">
+          <p className="font-sans font-semibold text-[12px] md:text-[20px] lg:text-[22px] leading-snug tracking-[-0.005em] whitespace-nowrap">
             <span className="font-normal text-fg-3">Not a coffee chat tracker.</span>{" "}
             <span className="font-bold text-brand">A relationship keeper.</span>
           </p>
           {/* Fixed line breaks keep "connections warm" together so the steam never overlaps the line above. */}
-          <h1 className="font-serif font-medium text-[clamp(28px,8.4vw,36px)] leading-[1.05] md:text-[58px] lg:text-[50px] xl:text-[60px] tracking-[-0.02em] whitespace-nowrap">
+          <h1 className="my-2 md:my-0 font-serif font-medium text-[clamp(30px,9vw,38px)] leading-[1.05] md:text-[58px] lg:text-[50px] xl:text-[60px] tracking-[-0.02em] whitespace-nowrap">
             Keep your<br />connections <WarmWord /><br />with <BrandWord />
           </h1>
           <p className="text-fg-2 text-[14px] leading-snug md:leading-normal md:text-[18px] max-w-[48ch]">

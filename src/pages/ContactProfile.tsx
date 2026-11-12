@@ -38,7 +38,7 @@ export function ContactProfile({ id }: { id: string }) {
       <Card className="p-4 md:p-5 flex flex-col gap-5">
         <div className="flex flex-col lg:flex-row gap-5 lg:items-start">
           <div className="flex gap-4 md:gap-5 flex-1 min-w-0">
-            <span className="contact-profile-avatar"><Avatar name={c.name} size={64} /></span>
+            <span className="contact-profile-avatar shrink-0 self-start"><Avatar name={c.name} size={64} /></span>
             <div className="min-w-0 flex flex-col gap-1.5">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="contact-profile-name font-serif text-[28px] md:text-[34px] leading-none font-semibold tracking-[-0.015em]">{c.name}</h1>

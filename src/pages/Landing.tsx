@@ -33,6 +33,7 @@ const TOUR = [
 const PRIVACY = [
   { img: "privacy-lock", title: "Private by default", text: "Only you can see your contacts and notes." },
   { img: "privacy-ai", title: "AI only when you ask", text: "Your notes are only shared with our AI provider when you press an AI button." },
+  { img: "privacy-export", title: "Export or delete anytime", text: "Download all your data, or erase it in one click from your profile." },
 ];
 
 export function Landing() {
@@ -88,7 +89,7 @@ export function Landing() {
             <SectionLabel>Your data, your network</SectionLabel>
             <h2 className="font-serif font-medium text-[26px] md:text-[34px] leading-[1.1] tracking-[-0.015em]">Your network belongs to you.</h2>
           </div>
-          <div className="grid gap-3 md:gap-4 md:grid-cols-2 max-w-[820px] mx-auto">
+          <div className="grid gap-3 md:gap-4 md:grid-cols-3 max-w-[1100px] mx-auto">
             {PRIVACY.map((p) => (
               <div key={p.title} className="rounded-2xl border border-line bg-card-2 p-4 md:p-5 flex items-center gap-4">
                 <img src={IMG(p.img)} alt="" loading="lazy" width={360} height={360} className="w-16 h-16 md:w-20 md:h-20 shrink-0" />

@@ -15,19 +15,19 @@ const ACTS = [
 ] as const;
 
 const PAINS = [
-  { icon: "folder_off", text: "Notes scattered across your Notes app, Excel and DMs" },
-  { icon: "schedule", text: "No reminder until it already feels awkward to reach out" },
-  { icon: "edit_off", text: "Starting every follow-up from a blank message" },
+  { icon: "folder_off", text: "Notes scattered across apps" },
+  { icon: "schedule", text: "No reminder until it feels awkward" },
+  { icon: "edit_off", text: "Every follow-up starts from scratch" },
 ];
 
 
 // Product tour: one silent screen recording (fictional demo data) with clickable chapters.
 // `at` is where each chapter starts in public/landing/demo.mp4, in seconds.
 const TOUR = [
-  { at: 0, icon: "timeline", title: "Every conversation, remembered", text: "Each contact keeps a timeline of chats, notes and messages. Glance at it before you say hi." },
-  { at: 7.9, icon: "auto_awesome", title: "Follow-ups written for you", text: "AI picks a good moment to reach out and drafts messages from what you discussed." },
-  { at: 19.6, icon: "calendar_month", title: "One calendar for every touchpoint", text: "Coffee chats, thank-you notes and check-ins in one timeline, with reminders." },
-  { at: 24.8, icon: "edit_note", title: "Messy notes, clean debrief", text: "Jot rough notes after a chat. AI turns them into clear takeaways." },
+  { at: 0, icon: "timeline", title: "Remember every conversation", text: "Every chat and note in one timeline." },
+  { at: 7.9, icon: "auto_awesome", title: "Get AI-tailored follow-ups", text: "AI drafts the message and picks the moment." },
+  { at: 19.6, icon: "calendar_month", title: "Never miss a check-in", text: "Chats, thank-yous and check-ins, with reminders." },
+  { at: 24.8, icon: "edit_note", title: "Organize messy notes", text: "Rough notes in, clear takeaways out." },
 ];
 
 const PRIVACY = [
@@ -65,7 +65,7 @@ export function Landing() {
             <SectionLabel>Why connections fade</SectionLabel>
             <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em]">You meet great people. Then life happens.</h2>
             <p className="text-fg-2 text-[16px] md:text-[17px] max-w-[56ch]">
-              A coffee chat goes well. You swap LinkedIns, promise to keep in touch, and mean it. Six weeks later you run into them at an event, and all you remember is their first name. The advice they gave, the article they recommended, the thing you said you’d send: gone.
+              Great chat. You promise to keep in touch.<br />Six weeks later, you only remember their first name.
             </p>
             <ul className="flex flex-col gap-2.5 mt-1">
               {PAINS.map((p) => (
@@ -105,7 +105,7 @@ export function Landing() {
 
       {/* ---------- Final CTA ---------- */}
       <section className="gutter pb-10 md:pb-14">
-        <div className="mx-auto max-w-[900px] rounded-3xl bg-ink text-on-ink px-6 py-8 md:px-10 md:py-9 flex flex-col md:flex-row items-center text-center md:text-left gap-4 md:gap-8">
+        <div className="mx-auto max-w-[1100px] rounded-3xl bg-ink text-on-ink px-6 py-8 md:px-10 md:py-9 flex flex-col md:flex-row items-center text-center md:text-left gap-4 md:gap-8">
           <div className="flex-1 flex flex-col gap-1.5">
             <h2 className="font-serif font-medium text-[24px] md:text-[30px] leading-[1.15] tracking-[-0.01em]">The next coffee chat could be the start of something big.</h2>
             <p className="opacity-80 text-[15px]">Make sure it isn’t the last one.</p>
@@ -296,7 +296,7 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
             Keep your<br />connections <WarmWord /><br />with <BrandWord />
           </h1>
           <p className="text-fg-2 text-[16px] md:text-[18px] max-w-[48ch]">
-            NextCup remembers what you talked about, reminds you when to reach out, and suggests what to say, so the people you meet stay in your corner for years, not days.
+            NextCup remembers what you talked about, reminds you when to reach out, and suggests what to say, so connections last for years.
           </p>
           <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-5 mt-1">
             <Button variant="primary" size="lg" iconRight="arrow_forward" onClick={onStart} className="rounded-full px-7">

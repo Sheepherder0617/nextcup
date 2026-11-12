@@ -133,9 +133,9 @@ function BrandWord() {
 function WarmWord() {
   // Illustrated steam: three tapered, gently curling wisps that fade toward the top and rise out of sync.
   const wisps = [
-    { d: "M20 58 C12 48, 28 40, 20 30 S 12 14, 22 4", w: 4.2, dur: 4.2, delay: 0 },
-    { d: "M34 58 C42 50, 26 42, 34 32 S 44 18, 36 8", w: 4.8, dur: 3.6, delay: 1.3 },
-    { d: "M47 58 C42 52, 52 46, 47 38 S 44 28, 49 22", w: 3.6, dur: 3.2, delay: 2.4 },
+    { d: "M14 58 C6 48, 22 40, 14 30 S 6 14, 16 4", w: 4.2, dur: 4.2, delay: 0 },
+    { d: "M31 58 C39 50, 23 42, 31 32 S 41 18, 33 8", w: 4.8, dur: 3.6, delay: 1.3 },
+    { d: "M50 58 C45 52, 55 46, 50 38 S 47 28, 52 22", w: 3.6, dur: 3.2, delay: 2.4 },
   ];
   return (
     <span className="relative inline-block">
@@ -287,7 +287,10 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
         style={{ background: "radial-gradient(45% 60% at 80% 40%, color-mix(in oklab, var(--peach) 55%, transparent), transparent 70%), radial-gradient(35% 50% at 10% 80%, color-mix(in oklab, var(--blue-soft) 55%, transparent), transparent 70%)" }} />
       <div className="relative mx-auto max-w-[1180px] pt-8 pb-12 md:pt-10 md:pb-16 lg:pt-12 grid gap-8 lg:gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-center">
         <div className="flex flex-col gap-5 text-center lg:text-left items-center lg:items-start">
-          <p className="label-caps"><span className="text-fg-3">Not a coffee chat tracker.</span> <span className="text-brand">A relationship keeper.</span></p>
+          <p className="font-sans font-semibold text-[16px] md:text-[20px] lg:text-[22px] leading-snug tracking-[-0.005em]">
+            <span className="block sm:inline font-normal text-fg-3">Not a coffee chat tracker.</span>{" "}
+            <span className="inline-block mt-1 sm:mt-0 font-bold text-brand">A relationship keeper.</span>
+          </p>
           {/* Fixed line breaks keep "connections warm" together so the steam never overlaps the line above. */}
           <h1 className="font-serif font-medium text-[clamp(30px,9.2vw,40px)] leading-[1.06] md:text-[58px] lg:text-[50px] xl:text-[60px] tracking-[-0.02em] whitespace-nowrap">
             Keep your<br />connections <WarmWord /><br />with <BrandWord />

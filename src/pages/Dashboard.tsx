@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useStore } from "../lib/store";
 import { useNav } from "../lib/nav";
-import { Avatar, Button, Card, Chip, Icon } from "../components/ui";
-import { dueTasks, inThisWeek, needsDebrief, upcomingChats } from "../lib/derive";
+import { Avatar, Button, Card, Chip, Icon, cx } from "../components/ui";
+import { DraftModal } from "../components/DraftModal";
+import { dueTasks, inThisWeek, isOverdue, needsDebrief, upcomingChats } from "../lib/derive";
 import { formatTime, greeting, parseLocal, relativeDay, timeRange } from "../lib/date";
-import { FORMAT_LABEL } from "../lib/types";
+import { FORMAT_LABEL, type ChatEvent, type Contact } from "../lib/types";
 import { eventToIcs, saveFile } from "../lib/files";
 
 export function Dashboard() {
@@ -18,14 +20,36 @@ export function Dashboard() {
   const tasks = dueTasks(store.events, 7, now);
   const unlogged = needsDebrief(store.events, now);
   const within24 = next ? parseLocal(next.start).getTime() - now.getTime() < 86400000 : false;
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const nContacts = store.contacts.length;
+  const nLogged = store.events.filter((e) => e.kind === "coffee" && e.status === "done").length;
   const stats = [
-    { label: "Total contacts", value: `${store.contacts.length} Contacts`, icon: "group" },
-    { label: "Completed chats", value: `${store.events.filter((e) => e.kind === "coffee" && e.status === "done").length} Logged`, icon: "local_cafe" },
+    { label: "Total contacts", value: `${nContacts} Contact${nContacts === 1 ? "" : "s"}`, icon: "group" },
+    { label: "Completed chats", value: `${nLogged} Logged`, icon: "local_cafe" },
     { label: "Upcoming chats", value: `${chats.length} Scheduled`, icon: "calendar_month" },
   ];
+  const upNext = buildUpNext(store.events, store.contactById, now);
 
   return (
     <div className="flex flex-col gap-4 md:gap-5 rise">
+      {/* Phone: one line greeting, then "what should I do next?" */}
+      <div className="md:hidden flex flex-col gap-4">
+        <h1 className="font-serif text-[26px] leading-tight font-semibold tracking-[-0.015em] truncate">{greeting(now)}, {first}</h1>
+        <UpNext items={upNext} hasContacts={nContacts > 0}
+          onAct={(it) => it.type === "debrief" ? openLog({ eventId: it.e.id }) : it.type === "chat" ? openPrep(it.c.id, it.e.id) : setDraftId(it.e.id)}
+          onSeeAll={() => go("calendar")} onEmpty={() => go(nContacts ? "schedule" : "add-contact")} />
+        <Card className="grid grid-cols-3 divide-x divide-line py-2.5">
+          {[[nContacts, nContacts === 1 ? "Contact" : "Contacts"], [nLogged, "Logged"], [chats.length, "Upcoming"]].map(([n, l]) => (
+            <div key={l} className="text-center min-w-0 px-1">
+              <p className="font-serif text-[22px] font-semibold leading-none tnum">{n}</p>
+              <p className="text-[12px] text-fg-3 font-semibold mt-1">{l}</p>
+            </div>
+          ))}
+        </Card>
+      </div>
+
+      {/* Tablet & desktop */}
+      <div className="hidden md:flex flex-col gap-5">
       <div className="flex flex-col gap-1">
         <h1 className="font-serif text-[28px] md:text-[34px] leading-tight font-semibold tracking-[-0.015em] flex items-center gap-3">
           {greeting(now)}, {first}! <Icon name="local_cafe" className="text-brand-2 text-[22px] md:text-[24px]" />
@@ -99,7 +123,7 @@ export function Dashboard() {
         </Card>
       )}
 
-      <div className="grid gap-3 md:gap-4 md:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <ModuleCard icon="contacts" badge={`${store.contacts.length} contact${store.contacts.length === 1 ? "" : "s"} saved`} title="Contact Directory & Notes"
           text="Manage your professional network."
           cta="Go to Contacts" onClick={() => go("contacts")} />
@@ -107,8 +131,83 @@ export function Dashboard() {
           text="Keep track of coffee chats, thank you notes, and follow-ups."
           cta="Go to Calendar" onClick={() => go("calendar")} />
       </div>
+      </div>
 
+      <DraftModal eventId={draftId} onClose={() => setDraftId(null)} />
     </div>
+  );
+}
+
+// ---------- Phone: "Up next" ----------
+type UpNextItem =
+  | { type: "debrief"; e: ChatEvent; c: Contact; rank: number }
+  | { type: "chat"; e: ChatEvent; c: Contact; rank: number }
+  | { type: "task"; e: ChatEvent; c: Contact; rank: number; overdue: boolean };
+
+/** One list of things to do, most urgent first: unlogged chats, overdue notes, then everything else by time. */
+function buildUpNext(events: ChatEvent[], contactById: (id: string) => Contact | undefined, now: Date): UpNextItem[] {
+  const out: UpNextItem[] = [];
+  const debriefs = needsDebrief(events, now);
+  const debriefIds = new Set(debriefs.map((e) => e.id));
+  for (const e of [...debriefs].reverse()) { const c = contactById(e.contactId); if (c) out.push({ type: "debrief", e, c, rank: 0 }); }
+  for (const e of dueTasks(events, 7, now)) {
+    const c = contactById(e.contactId); const overdue = isOverdue(e, now);
+    if (c) out.push({ type: "task", e, c, rank: overdue ? 1 : 2, overdue });
+  }
+  for (const e of upcomingChats(events, now)) {
+    const c = contactById(e.contactId);
+    if (c && !debriefIds.has(e.id)) out.push({ type: "chat", e, c, rank: 2 });
+  }
+  return out.sort((a, b) => a.rank - b.rank || (a.rank === 0 ? 0 : a.e.start.localeCompare(b.e.start)));
+}
+
+// Short day for narrow rows: "Today", "Tomorrow", "Yesterday", otherwise "Sun, Nov 15".
+const shortDay = new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" });
+function shortRelDay(start: string) {
+  const r = relativeDay(start);
+  return r === "Today" || r === "Tomorrow" || r === "Yesterday" ? r : shortDay.format(parseLocal(start));
+}
+
+function upNextText(it: UpNextItem): { context: string; action: string; icon: string; urgent: boolean } {
+  const day = shortRelDay(it.e.start);
+  if (it.type === "debrief") return { context: `How did it go? · ${day}`, action: "Debrief", icon: "edit_note", urgent: true };
+  if (it.type === "chat") return { context: `Coffee chat · ${day} ${formatTime(it.e.start)}`, action: "Prep", icon: "auto_awesome", urgent: false };
+  const what = it.e.kind === "thankyou" ? "Thank-you note" : "Follow-up";
+  return { context: it.overdue ? `${what} · Overdue` : `${what} due · ${day}`, action: "Write", icon: "edit", urgent: it.overdue };
+}
+
+function UpNext({ items, hasContacts, onAct, onSeeAll, onEmpty }:
+  { items: UpNextItem[]; hasContacts: boolean; onAct: (it: UpNextItem) => void; onSeeAll: () => void; onEmpty: () => void }) {
+  if (!items.length) {
+    return (
+      <Card className="px-4 py-3 flex items-center gap-3">
+        <p className="flex-1 min-w-0 text-[14px] text-fg-2">{hasContacts ? "You’re all caught up. Who’s next?" : "Add someone you’d like to stay in touch with."}</p>
+        <Button size="sm" variant="primary" icon={hasContacts ? "event_available" : "person_add"} onClick={onEmpty}>{hasContacts ? "Schedule a chat" : "Add contact"}</Button>
+      </Card>
+    );
+  }
+  return (
+    <section aria-labelledby="up-next" className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between">
+        <h2 id="up-next" className="label-caps text-brand">Up next</h2>
+        <button type="button" onClick={onSeeAll} className="text-[13px] font-semibold text-fg-2 hover:text-fg inline-flex items-center gap-0.5">See all in Calendar<Icon name="chevron_right" className="text-[18px]" /></button>
+      </div>
+      <Card className="divide-y divide-line overflow-hidden">
+        {items.slice(0, 4).map((it) => {
+          const t = upNextText(it);
+          return (
+            <div key={it.type + it.e.id} className="flex items-center gap-3 px-3.5 py-2.5">
+              <Avatar name={it.c.name} size={36} />
+              <div className="flex-1 min-w-0">
+                <p className="text-[15px] font-semibold leading-tight truncate">{it.c.name}</p>
+                <p className={cx("text-[13px] truncate mt-0.5", t.urgent ? "text-brand font-semibold" : "text-fg-2")}>{t.context}</p>
+              </div>
+              <Button size="sm" variant={it.type === "debrief" ? "primary" : "secondary"} icon={t.icon} onClick={() => onAct(it)} className="shrink-0 px-2.5">{t.action}</Button>
+            </div>
+          );
+        })}
+      </Card>
+    </section>
   );
 }
 
@@ -119,13 +218,13 @@ function ModuleCard({ icon, badge, title, text, cta, onClick }: { icon: string; 
         <div aria-hidden="true" className="absolute -top-16 -right-16 w-40 h-40 rounded-full" style={{ background: "radial-gradient(circle, color-mix(in oklab, var(--peach) 60%, transparent), transparent 70%)" }} />
         <span className="relative grid place-items-center w-10 h-10 rounded-xl bg-peach text-on-peach shrink-0"><Icon name={icon} /></span>
         <div className="relative flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h2 className="text-[17px] font-bold tracking-[-0.01em]">{title}</h2>
-            <Chip tone="neutral">{badge}</Chip>
-          </div>
+          <h2 className="text-[17px] font-bold tracking-[-0.01em] truncate">{title}</h2>
           <p className="text-fg-2 text-[14px] mt-0.5">{text}</p>
         </div>
-        <button type="button" onClick={onClick} className="relative shrink-0 text-sm font-bold inline-flex items-center gap-1 hover:text-brand">{cta}<Icon name="arrow_forward" className="text-[18px]" /></button>
+        <div className="relative shrink-0 flex flex-col items-end gap-1.5">
+          <Chip tone="neutral">{badge}</Chip>
+          <button type="button" onClick={onClick} className="text-sm font-bold inline-flex items-center gap-1 hover:text-brand">{cta}<Icon name="arrow_forward" className="text-[18px]" /></button>
+        </div>
       </div>
     </Card>
   );

@@ -12,6 +12,7 @@ type Tab = "overview" | "resume" | "ai" | "privacy";
 
 export function ProfilePage() {
   const store = useStore();
+  const { go } = useNav();
   const p = store.profile!;
   const [tab, setTab] = useState<Tab>("overview");
   const [editing, setEditing] = useState(false);
@@ -35,7 +36,7 @@ export function ProfilePage() {
         </div>
         <div className="flex flex-wrap gap-2 self-start md:self-center">
           <Button variant="primary" icon="edit" onClick={() => setEditing(true)}>Edit Profile Details</Button>
-          {store.auth.enabled && <Button variant="secondary" icon="logout" onClick={() => store.auth.signOut()}>Sign out</Button>}
+          {store.auth.enabled && <Button variant="secondary" icon="logout" onClick={async () => { await store.auth.signOut(); go("welcome"); }}>Sign out</Button>}
         </div>
       </Card>
 

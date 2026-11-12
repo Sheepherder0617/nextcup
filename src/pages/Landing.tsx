@@ -53,7 +53,7 @@ export function Landing() {
           <a href="#welcome" className="rounded-xl"><span className="sm:hidden"><Wordmark compact /></span><span className="hidden sm:block"><Wordmark /></span></a>
           <div className="flex items-center gap-1.5 md:gap-2">
             {!profile && <Button variant="ghost" size="sm" onClick={signIn} className="rounded-full h-9 md:px-4">Sign in</Button>}
-            {profile && <Button variant="primary" size="sm" onClick={start} className="rounded-full h-9 px-4">Open app</Button>}
+            <Button variant="primary" size="sm" onClick={start} className="rounded-full h-9 px-4">{profile ? "Open app" : "Start for free"}</Button>
           </div>
         </div>
       </header>
@@ -258,7 +258,12 @@ function useReducedMotion() {
 function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean }) {
   const reduced = useReducedMotion();
   const [act, setAct] = useState(0);
-  const shown = reduced ? 2 : act;
+  // Reduced motion: no autoplay and start on the final act, but still let people step through by tap or swipe.
+  const [picked, setPicked] = useState(false);
+  const shown = reduced && !picked ? 2 : act;
+  const pick = (i: number) => { setPicked(true); setAct((i + ACTS.length) % ACTS.length); };
+  // Swipe left for the next act, right for the previous one. Vertical drags are left to page scrolling.
+  const swipe = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     if (reduced) return;
@@ -295,16 +300,26 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
         </div>
 
         <div className="relative w-full max-w-[640px] mx-auto">
-          <Stage act={shown} />
+          <div className="touch-pan-y select-none"
+            onPointerDown={(e) => { swipe.current = { x: e.clientX, y: e.clientY }; }}
+            onPointerCancel={() => { swipe.current = null; }}
+            onPointerUp={(e) => {
+              const s = swipe.current; swipe.current = null;
+              if (!s) return;
+              const dx = e.clientX - s.x, dy = e.clientY - s.y;
+              if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) pick(shown + (dx < 0 ? 1 : -1));
+            }}>
+            <Stage act={shown} />
+          </div>
           {/* Desktop/tablet: the app card floats over the scene */}
           <div className={cx("hidden md:block absolute right-[-8px] lg:right-[-20px] bottom-[52px] w-[min(330px,58%)] transition-all duration-700 ease-[cubic-bezier(.22,1,.36,1)]",
             shown === 2 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none")}>
             <ContactCard />
           </div>
-          <div className="mt-4 grid">
-            <Steps act={shown} onPick={setAct} className={cx("[grid-area:1/1] self-start transition-opacity duration-500", shown === 2 && "max-md:opacity-0 max-md:pointer-events-none")} />
-            {/* Phone: the card takes the steps' place */}
-            <div className={cx("md:hidden [grid-area:1/1] transition-all duration-700 ease-[cubic-bezier(.22,1,.36,1)]",
+          <Steps act={shown} onPick={pick} className="mt-4" />
+          {/* Phone: the card appears below the steps, so the step labels stay readable */}
+          <div className="md:hidden mt-4">
+            <div className={cx("transition-all duration-700 ease-[cubic-bezier(.22,1,.36,1)]",
               shown === 2 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none")}>
               <ContactCard />
             </div>
@@ -320,9 +335,9 @@ function Stage({ act }: { act: number }) {
     <div className="relative w-full aspect-[3/2.1]" role="img"
       aria-label="Two young professionals run into each other at a networking event. Both wonder when they last talked and what they discussed. She checks NextCup on her phone and sees their whole history.">
       <div aria-hidden="true" className="absolute inset-x-[4%] top-[8%] bottom-0 rounded-t-[999px] rounded-b-[32px] bg-[color-mix(in_oklab,var(--peach)_55%,var(--card))] border border-line" />
-      <img src={IMG("hero-1")} alt="" width={1400} height={933} fetchPriority="high"
+      <img src={IMG("hero-1")} alt="" draggable={false} width={1400} height={933} fetchPriority="high"
         className={cx("absolute inset-x-0 bottom-0 w-full transition-opacity duration-700", act === 0 ? "opacity-100" : "opacity-0")} />
-      <img src={IMG("hero-2")} alt="" width={1400} height={933}
+      <img src={IMG("hero-2")} alt="" draggable={false} width={1400} height={933}
         className={cx("absolute inset-x-0 bottom-0 w-full transition-opacity duration-700", act === 0 ? "opacity-0" : "opacity-100")} />
       <Thought show={act === 0} className="left-[1%] top-[17%] md:top-[24%] w-[47%] md:w-[44%]" tail="left-[48%]" delay={250}>What did we chat about again?</Thought>
       <Thought show={act === 0} className="right-[0%] top-[6%] md:top-[14%] w-[45%] md:w-[42%]" tail="left-[38%]" delay={900}>When did we last talk…?</Thought>

@@ -14,16 +14,24 @@ const CURSOR = `(() => { const c = document.createElement('div'); c.id='fake-cur
   addEventListener('mousedown',()=>{c.style.transform='translate(-50%,-50%) scale(.7)';c.style.background='rgba(153,110,72,.45)'},true);
   addEventListener('mouseup',()=>{c.style.transform='translate(-50%,-50%)';c.style.background='rgba(46,26,12,.18)'},true); })()`;
 (async () => {
-  const srv = serve(__dirname + '/site', 4181); const b = await chromium.launch();
-  const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: MODE === 'stills' ? 2 : 1, ...(MODE === 'video' ? { recordVideo: { dir: __dirname + '/vid', size: { width: W, height: H } } } : {}) });
+  const srv = serve(__dirname + '/site', 4181); const b = await chromium.launch(MODE === 'video' ? { args: ['--force-device-scale-factor=1.5'] } : {});
+  const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: MODE === 'video' ? 1.5 : 2 });
   await ctx.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: FONT_CSS }));
   await ctx.addInitScript((data) => { if (!localStorage.getItem('nextcup:v1')) localStorage.setItem('nextcup:v1', JSON.stringify(data)); }, seed());
   if (MODE === 'video') await ctx.addInitScript(CURSOR);
-  const pg = await ctx.newPage(); const t0 = Date.now(); const marks = {}; const mark = (n) => (marks[n] = (Date.now() - t0) / 1000); const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  const pg = await ctx.newPage(); const t0 = Date.now(); const marks = {}; const mark = (n) => (marks[n] = (Date.now() - t0) / 1000); const events = []; const sfx = (type) => events.push({ type, t: (Date.now() - t0) / 1000, epoch: Date.now() / 1000 });
+  const frames = [];
+  if (MODE === 'video') {
+    fs.rmSync(__dirname + '/frames', { recursive: true, force: true }); fs.mkdirSync(__dirname + '/frames');
+    const cdp = await ctx.newCDPSession(pg);
+    cdp.on('Page.screencastFrame', async (f) => { const n = frames.length; fs.promises.writeFile(`${__dirname}/frames/${String(n).padStart(5, '0')}.jpg`, Buffer.from(f.data, 'base64')); frames.push(f.metadata.timestamp); cdp.send('Page.screencastFrameAck', { sessionId: f.sessionId }).catch(() => {}); });
+    await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 85, maxWidth: W * 1.5, maxHeight: H * 1.5, everyNthFrame: 1 });
+    pg.__cdp = cdp;
+  } const errs = []; pg.on('pageerror', e => errs.push(e.message));
   let mx = W / 2, my = H / 2;
   const wait = (ms) => pg.waitForTimeout(MODE === 'video' ? ms : Math.min(ms, 400));
   async function moveTo(loc) { await loc.scrollIntoViewIfNeeded(); const bb = await loc.boundingBox(); const x = bb.x + bb.width / 2, y = bb.y + bb.height / 2; await pg.mouse.move(x, y, { steps: MODE === 'video' ? 25 : 1 }); mx = x; my = y; }
-  async function click(loc, pause = 500) { await moveTo(loc); await wait(250); await pg.mouse.down(); await pg.mouse.up(); await wait(pause); }
+  async function click(loc, pause = 500) { await moveTo(loc); await wait(250); sfx('click'); await pg.mouse.down(); await pg.mouse.up(); await wait(pause); }
   async function smoothScroll(y, ms = 900) { await pg.evaluate(([y]) => window.scrollTo({ top: y, behavior: 'smooth' }), [y]); await wait(ms); }
   const shot = (n) => MODE === 'stills' && pg.screenshot({ path: `${__dirname}/shots/${n}.png` });
   fs.mkdirSync(__dirname + '/shots', { recursive: true });
@@ -40,7 +48,7 @@ const CURSOR = `(() => { const c = document.createElement('div'); c.id='fake-cur
   await smoothScroll(300, 700);
   await click(pg.getByText('Follow-up Ideas', { exact: true }).first(), 700);
   await smoothScroll(560, 900);
-  await click(pg.getByRole('button', { name: /Generate ideas/ }), 300); await pg.getByText('Ask how demo day went').waitFor(); await wait(900);
+  await click(pg.getByRole('button', { name: /Generate ideas/ }), 300); await pg.getByText('Ask how demo day went').waitFor(); sfx('chime'); await wait(900);
   await smoothScroll(620, 1800); await shot('followup'); await wait(1500);
   // 4. Calendar
   mark('calendar');
@@ -52,11 +60,12 @@ const CURSOR = `(() => { const c = document.createElement('div'); c.id='fake-cur
   await click(pg.getByRole('button', { name: /Log a Chat/ }).first(), 900);
   const ta = pg.locator('#log-raw'); await moveTo(ta); await ta.click();
   const raw = 'ryan - 6 ppl on ML team, analysts move in via model monitoring. sql + eval skills > fancy models. learn pytorch basics. privacy training for clinical data. spring ML intern posting soon, he will flag it';
-  if (MODE === 'video') await ta.pressSequentially(raw, { delay: 18 }); else await ta.fill(raw);
+  if (MODE === 'video') { sfx('typestart'); await ta.pressSequentially(raw, { delay: 18 }); sfx('typeend'); } else await ta.fill(raw);
   await wait(500);
-  await click(pg.getByRole('button', { name: /Tidy into a debrief/ }), 300); await pg.waitForFunction(() => document.querySelector('#log-raw')?.value.startsWith('•')); await wait(1200);
+  await click(pg.getByRole('button', { name: /Tidy into a debrief/ }), 300); await pg.waitForFunction(() => document.querySelector('#log-raw')?.value.startsWith('•')); sfx('chime'); await wait(1200);
   await shot('debrief'); await wait(2500);
   await click(pg.getByRole('button', { name: /Save debrief/ }), 1500);
-  mark('end'); console.log(JSON.stringify(marks)); console.log('errors', errs);
+  mark('end'); console.log(JSON.stringify(marks)); if (pg.__cdp) { await wait(600); await pg.__cdp.send('Page.stopScreencast'); frames.push(Date.now() / 1000); }
+  fs.writeFileSync(__dirname + '/events.json', JSON.stringify({ marks, events, frames }, null, 1)); console.log('errors', errs);
   await ctx.close(); await b.close(); srv.close();
 })();

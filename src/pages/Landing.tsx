@@ -30,9 +30,9 @@ const STEPS = [
 // `at` is where each chapter starts in public/landing/demo.mp4, in seconds.
 const TOUR = [
   { at: 0, icon: "timeline", title: "Every conversation, remembered", text: "Each contact keeps a timeline of chats, notes and messages. Glance at it before you say hi." },
-  { at: 7.1, icon: "auto_awesome", title: "Follow-ups written for you", text: "AI picks a good moment to reach out and drafts messages from what you discussed." },
-  { at: 19.2, icon: "calendar_month", title: "One calendar for every touchpoint", text: "Coffee chats, thank-you notes and check-ins in one timeline, with reminders." },
-  { at: 23.4, icon: "edit_note", title: "Messy notes, clean debrief", text: "Jot rough notes after a chat. AI turns them into clear takeaways." },
+  { at: 7.9, icon: "auto_awesome", title: "Follow-ups written for you", text: "AI picks a good moment to reach out and drafts messages from what you discussed." },
+  { at: 19.6, icon: "calendar_month", title: "One calendar for every touchpoint", text: "Coffee chats, thank-you notes and check-ins in one timeline, with reminders." },
+  { at: 24.8, icon: "edit_note", title: "Messy notes, clean debrief", text: "Jot rough notes after a chat. AI turns them into clear takeaways." },
 ];
 
 const PRIVACY = [
@@ -168,6 +168,7 @@ function Tour() {
   const reduced = useReducedMotion();
   const video = useRef<HTMLVideoElement>(null);
   const [active, setActive] = useState(0);
+  const [sound, setSound] = useState(false);
 
   // Play only while the tour is on screen (saves data and battery); never autoplay for reduced motion.
   useEffect(() => {
@@ -183,6 +184,14 @@ function Tour() {
     let i = 0;
     TOUR.forEach((c, k) => { if (t >= c.at) i = k; });
     if (i !== active) setActive(i);
+  }
+  // Browsers only autoplay muted video, so sound is opt-in.
+  function toggleSound() {
+    const v = video.current;
+    if (!v) return;
+    v.muted = sound;
+    setSound(!sound);
+    if (!sound) v.play().catch(() => {});
   }
   function jump(i: number) {
     const v = video.current;
@@ -217,7 +226,7 @@ function Tour() {
               </li>
             ))}
           </ol>
-          <figure className="order-1 lg:order-2 rounded-2xl border border-line-2 bg-card shadow-lift overflow-hidden">
+          <figure className="relative order-1 lg:order-2 rounded-2xl border border-line-2 bg-card shadow-lift overflow-hidden">
             <div aria-hidden="true" className="h-8 md:h-9 px-3 flex items-center gap-1.5 border-b border-line bg-header">
               <span className="w-2.5 h-2.5 rounded-full bg-line-2" /><span className="w-2.5 h-2.5 rounded-full bg-line-2" /><span className="w-2.5 h-2.5 rounded-full bg-line-2" />
               <span className="ml-3 flex-1 max-w-[260px] h-5 rounded-md bg-sunken text-[11px] text-fg-3 grid place-items-center">NextCup</span>
@@ -228,6 +237,10 @@ function Tour() {
               <source src="/landing/demo.webm" type="video/webm" />
               <source src="/landing/demo.mp4" type="video/mp4" />
             </video>
+            <button type="button" onClick={toggleSound} aria-pressed={sound} aria-label={sound ? "Mute demo" : "Play demo with sound"}
+              className="absolute right-2 top-1 md:top-1.5 inline-flex items-center gap-1 h-6 px-2.5 rounded-full bg-ink text-on-ink text-[12px] font-semibold hover:opacity-90 transition">
+              <Icon name={sound ? "volume_up" : "volume_off"} className="text-[15px]" />{sound ? "Sound on" : "Turn on sound"}
+            </button>
             <figcaption className="lg:hidden px-4 py-3 text-[14px] text-fg-2 border-t border-line">{TOUR[active].text}</figcaption>
           </figure>
         </div>

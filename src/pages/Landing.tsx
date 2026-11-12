@@ -118,7 +118,7 @@ export function Landing() {
       </section>
 
       <footer className="gutter border-t border-line mt-auto">
-        <p className="mx-auto max-w-[1180px] py-8 text-center text-[13px] text-fg-3">NextCup · Built by the CATalysts at Rotman, in Toronto.</p>
+        <p className="mx-auto max-w-[1180px] py-8 text-center text-[13px] text-fg-3">NextCup · Built by the <span className="catalysts-shine">CATalysts</span> at Rotman, in Toronto.</p>
       </footer>
     </div>
   );
@@ -269,7 +269,7 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
         style={{ background: "radial-gradient(45% 60% at 80% 40%, color-mix(in oklab, var(--peach) 55%, transparent), transparent 70%), radial-gradient(35% 50% at 10% 80%, color-mix(in oklab, var(--blue-soft) 55%, transparent), transparent 70%)" }} />
       <div className="relative mx-auto max-w-[1180px] pt-8 pb-12 md:pt-10 md:pb-16 lg:pt-12 grid gap-8 lg:gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-center">
         <div className="flex flex-col gap-5 text-center lg:text-left items-center lg:items-start">
-          <p className="label-caps text-brand">The coffee chat tracker for students &amp; early-career professionals</p>
+          <p className="label-caps"><span className="text-fg-3">Not a coffee chat tracker.</span> <span className="text-brand">A relationship keeper.</span></p>
           {/* Fixed line breaks keep "connections warm" together so the steam never overlaps the line above. */}
           <h1 className="font-serif font-medium text-[clamp(30px,9.2vw,40px)] leading-[1.06] md:text-[58px] lg:text-[50px] xl:text-[60px] tracking-[-0.02em] whitespace-nowrap">
             Keep your<br />connections <WarmWord /><br />with <BrandWord />

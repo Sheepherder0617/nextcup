@@ -232,12 +232,11 @@ function Features() {
   return (
     <section className="gutter">
       <div className="mx-auto max-w-[1180px] py-14 md:py-20">
-        <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-3 mb-8 md:mb-10">
-          <SectionLabel>Features</SectionLabel>
-          <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[20ch]">Everything you need to keep in touch.</h2>
-        </div>
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-start">
-          <ul className="flex flex-col gap-2.5" aria-label="Features">
+        {/* Desktop: label, headline and list on the left; the screenshot on the right starts level with the headline. */}
+        <div className="grid lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:grid-rows-[auto_auto_1fr] lg:gap-x-10 items-start">
+          <div className="mb-3 justify-self-center lg:justify-self-start lg:col-start-1 lg:row-start-1"><SectionLabel>Features</SectionLabel></div>
+          <h2 className="mb-8 md:mb-10 lg:mb-8 lg:col-start-1 lg:row-start-2 text-center lg:text-left justify-self-center lg:justify-self-start font-serif font-medium text-[32px] md:text-[44px] lg:text-[38px] xl:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[20ch] lg:max-w-none lg:!text-nowrap">Everything you need<br className="hidden lg:block" /> to keep in touch.</h2>
+          <ul className="lg:col-start-1 lg:row-start-3 flex flex-col gap-2.5" aria-label="Features">
             {FEATURES.map((f, i) => {
               const open = active === i;
               return (
@@ -262,7 +261,7 @@ function Features() {
             })}
           </ul>
           {/* Desktop: one framed screenshot that follows the selected feature */}
-          <figure className="hidden lg:block rounded-2xl border border-line-2 bg-card shadow-lift overflow-hidden lg:sticky lg:top-24">
+          <figure className="hidden lg:block lg:col-start-2 lg:row-start-2 lg:row-span-2 rounded-2xl border border-line-2 bg-card shadow-lift overflow-hidden lg:sticky lg:top-24">
             <BrowserBar />
             <div className="grid">
               {FEATURES.map((f, i) => (
@@ -279,7 +278,8 @@ function Features() {
 }
 
 function SectionLabel({ children }: { children: ReactNode }) {
-  return <p className="label-caps text-brand">{children}</p>;
+  // label-caps is 11px; section labels on the landing page are larger so they read as section headers.
+  return <p className="label-caps !text-[13px] md:!text-[15px] !tracking-[0.08em] text-brand">{children}</p>;
 }
 
 // ---------- Hero ----------
@@ -411,18 +411,16 @@ function Thought({ show, className, tail, delay, children }: { show: boolean; cl
 }
 
 function Steps({ act, onPick, auto, className }: { act: number; onPick: (i: number) => void; auto: boolean; className?: string }) {
-  const emoji = ["👋", "😅", "💡"];
   return (
-    <div role="tablist" aria-label="The story" className={cx("grid grid-cols-3 gap-1 p-1 rounded-full bg-sunken border border-line", className)}>
+    <div role="tablist" aria-label="The story" className={cx("grid grid-cols-3 gap-0.5 p-0.5 w-full max-w-[420px] mx-auto rounded-full bg-sunken border border-line", className)}>
       {ACTS.map((a, i) => {
         const on = act === i;
         return (
           <button key={a.label} type="button" role="tab" aria-selected={on} onClick={() => onPick(i)}
-            className={cx("relative overflow-hidden h-11 md:h-12 rounded-full flex items-center justify-center gap-1.5 text-[13px] md:text-[15px] font-semibold transition-colors",
-              on ? "bg-ink text-on-ink shadow-soft" : "text-fg-2 hover:bg-card hover:text-fg")}>
+            className={cx("relative overflow-hidden h-8 md:h-9 rounded-full flex items-center justify-center gap-1 text-[12.5px] md:text-[13.5px] font-semibold transition-colors",
+              on ? "bg-card text-fg border border-line-2 shadow-soft" : "text-fg-3 hover:text-fg")}>
             {/* While auto-playing, the active pill fills up to show when the next act comes */}
-            {on && auto && <span key={act} aria-hidden="true" className="step-fill absolute inset-y-0 left-0 bg-white/15" style={{ animationDuration: `${a.ms}ms` }} />}
-            <span aria-hidden="true" className="relative text-[15px] md:text-[17px] leading-none">{emoji[i]}</span>
+            {on && auto && <span key={act} aria-hidden="true" className="step-fill absolute inset-y-0 left-0 bg-peach/60" style={{ animationDuration: `${a.ms}ms` }} />}
             <span className="relative whitespace-nowrap">{a.label}</span>
           </button>
         );

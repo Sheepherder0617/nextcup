@@ -94,7 +94,7 @@ function Shell() {
   return (
     <NavCtx.Provider value={nav}>
       <TopBar active={name} />
-      <main className="gutter pt-6 md:pt-8 pb-[calc(112px+env(safe-area-inset-bottom,0px))] md:pb-16">
+      <main className="gutter pt-4 md:pt-6 pb-[calc(112px+env(safe-area-inset-bottom,0px))] md:pb-10">
         <div className="mx-auto max-w-[1280px]">{page}</div>
       </main>
       <BottomBar active={name} />
@@ -104,13 +104,38 @@ function Shell() {
   );
 }
 
-const LINKS: { name: RouteName; label: string; icon: string }[] = [
+// Top nav has two groups: places to look at, and things to create.
+const VIEWS: { name: RouteName; label: string; icon: string }[] = [
   { name: "dashboard", label: "Dashboard", icon: "space_dashboard" },
   { name: "contacts", label: "Contacts", icon: "group" },
   { name: "calendar", label: "Calendar", icon: "calendar_month" },
+];
+const ACTIONS: { name: RouteName; label: string; icon: string }[] = [
   { name: "add-contact", label: "Add Contact", icon: "person_add" },
   { name: "schedule", label: "Schedule Event", icon: "event_available" },
 ];
+
+function NavLinks({ active, small }: { active: RouteName; small?: boolean }) {
+  const h = small ? "h-7 text-[12.5px]" : "h-8 text-[13px]";
+  return (
+    <>
+      {VIEWS.map((l) => (
+        <a key={l.name} href={"#" + l.name} aria-current={isActive(l.name, active) ? "page" : undefined}
+          className={cx("px-2.5 inline-flex items-center rounded-full font-medium whitespace-nowrap transition", h,
+            isActive(l.name, active) ? "bg-card text-fg font-semibold shadow-soft" : "text-fg-2 hover:bg-card/70")}>
+          {l.label}
+        </a>
+      ))}
+      {ACTIONS.map((l, i) => (
+        <a key={l.name} href={"#" + l.name} aria-current={isActive(l.name, active) ? "page" : undefined}
+          className={cx("pl-2 pr-2.5 inline-flex items-center gap-1 rounded-full font-semibold", i === 0 ? "ml-3" : "ml-1", "whitespace-nowrap border transition", h,
+            isActive(l.name, active) ? "bg-peach text-on-peach border-brand-2" : "bg-peach/50 text-on-peach border-transparent hover:bg-peach")}>
+          <Icon name={l.icon} className="text-[15px]" />{l.label}
+        </a>
+      ))}
+    </>
+  );
+}
 
 function isActive(link: RouteName, active: RouteName) {
   if (link === active) return true;
@@ -124,37 +149,27 @@ function TopBar({ active }: { active: RouteName }) {
   return (
     <header className="sticky z-40 bg-header/95 backdrop-blur border-b border-line" style={{ top: "env(safe-area-inset-top, 0px)" }}>
       <div className="gutter">
-        <div className="mx-auto max-w-[1280px] h-16 md:h-[72px] flex items-center gap-4">
-          <a href="#dashboard" className="shrink-0 rounded-xl"><Wordmark /></a>
-          <nav aria-label="Main" className="hidden lg:flex items-center gap-1 ml-4">
-            {LINKS.map((l) => (
-              <a key={l.name} href={"#" + l.name} aria-current={isActive(l.name, active) ? "page" : undefined}
-                className={cx("px-3.5 h-10 inline-flex items-center rounded-full text-[14px] font-medium transition",
-                  isActive(l.name, active) ? "bg-card text-fg font-semibold shadow-soft" : "text-fg-2 hover:bg-card/70")}>
-                {l.label}
-              </a>
-            ))}
+        <div className="mx-auto max-w-[1280px] h-[54px] flex items-center gap-3">
+          <a href="#dashboard" className="shrink-0 rounded-xl"><Wordmark small /></a>
+          <nav aria-label="Main" className="hidden lg:flex items-center gap-0.5 ml-4">
+            <NavLinks active={active} />
           </nav>
           <div className="flex-1" />
-          <button type="button" onClick={() => openLog()} className="hidden md:inline-flex items-center gap-2 h-10 px-4 rounded-full bg-ink text-on-ink text-sm font-semibold shadow-soft hover:opacity-90">
-            <Icon name="edit_note" className="text-[20px]" />Log a chat
+          <button type="button" onClick={() => openLog()} className="hidden md:inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-ink text-on-ink text-[13px] font-semibold shadow-soft hover:opacity-90">
+            <Icon name="edit_note" className="text-[17px]" />Log a chat
           </button>
           <button type="button" onClick={() => go("profile")} aria-current={active === "profile" ? "page" : undefined}
-            className={cx("flex items-center gap-2.5 rounded-full pl-1 pr-1 md:pr-3 py-1 border transition", active === "profile" ? "bg-card border-line-2" : "border-transparent hover:bg-card/70")}>
-            <Avatar name={profile?.name ?? "You"} src={viewer.avatarUrl} size={36} />
+            className={cx("flex items-center gap-2 rounded-full p-0.5 md:pr-2.5 border transition", active === "profile" ? "bg-card border-line-2" : "border-transparent hover:bg-card/70")}>
+            <Avatar name={profile?.name ?? "You"} src={viewer.avatarUrl} size={28} />
             <span className="hidden md:block text-left leading-tight">
-              <span className="block text-sm font-semibold">{profile?.name}</span>
-              <span className="block text-[11px] font-semibold text-fg-3 max-w-[180px] truncate">{profile?.headline}</span>
+              <span className="block text-[13px] font-semibold">{profile?.name}</span>
+              <span className="block text-[10.5px] font-semibold text-fg-3 max-w-[160px] truncate">{profile?.headline}</span>
             </span>
           </button>
         </div>
       </div>
-      <nav aria-label="Sections" className="hidden md:flex lg:hidden gutter pb-2 gap-1 overflow-x-auto">
-        {LINKS.map((l) => (
-          <a key={l.name} href={"#" + l.name} aria-current={isActive(l.name, active) ? "page" : undefined}
-            className={cx("px-3 h-9 inline-flex items-center rounded-full text-[13px] font-medium whitespace-nowrap",
-              isActive(l.name, active) ? "bg-card text-fg font-semibold shadow-soft" : "text-fg-2 hover:bg-card/70")}>{l.label}</a>
-        ))}
+      <nav aria-label="Sections" className="hidden md:flex lg:hidden gutter pb-2 gap-0.5 items-center overflow-x-auto">
+        <NavLinks active={active} small />
       </nav>
     </header>
   );

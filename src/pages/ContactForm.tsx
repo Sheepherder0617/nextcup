@@ -59,28 +59,26 @@ export function ContactForm({ id }: { id?: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-6 rise">
+    <div className="flex flex-col gap-4 md:gap-5 rise">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           {existing && <button type="button" onClick={() => go("contact", existing.id)} className="mb-3 inline-flex items-center gap-1.5 text-sm font-semibold text-fg-2 hover:text-fg"><Icon name="arrow_back" className="text-[18px]" />Back to {existing.name}</button>}
-          <h1 className="font-serif text-[36px] md:text-[44px] font-semibold leading-tight">{existing ? "Edit Contact" : "Add New Contact"}</h1>
-          <p className="text-fg-2 text-[17px]">Log connection details before your chat and capture key takeaways after.</p>
+          <h1 className="font-serif text-[28px] md:text-[34px] font-semibold leading-tight">{existing ? "Edit Contact" : "Add New Contact"}</h1>
+          <p className="text-fg-2 text-[15px]">Log connection details before your chat and capture key takeaways after.</p>
         </div>
-        <span className="self-start md:self-auto inline-flex items-center gap-2 rounded-full bg-card border border-line px-4 py-2 text-sm font-semibold shadow-soft">
-        </span>
       </div>
 
-      <Card className="p-5 md:p-8 flex flex-col gap-6">
+      <Card className="p-5 md:p-6 flex flex-col gap-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
-            <span className="grid place-items-center w-12 h-12 rounded-xl bg-ink text-on-ink font-serif text-[22px] font-semibold">01</span>
+            <span className="grid place-items-center w-10 h-10 rounded-xl bg-ink text-on-ink font-serif text-[22px] font-semibold">01</span>
             <div>
               <h2 className="font-serif text-[24px] font-semibold mt-1">Contact Information</h2>
             </div>
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           <div className="flex flex-col gap-5">
             <div><Label htmlFor="cf-name" hint="Required">Contact name</Label>
               <Input id="cf-name" icon="person" value={f.name} onChange={(e) => set("name", e.target.value)} placeholder="Tyler Vance" /></div>

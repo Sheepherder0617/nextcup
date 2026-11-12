@@ -39,10 +39,10 @@ export function Contacts() {
   const shown = rows.slice(cur * PAGE, cur * PAGE + PAGE);
 
   return (
-    <div className="flex flex-col gap-6 rise">
+    <div className="flex flex-col gap-4 md:gap-5 rise">
       <div className="flex flex-col md:flex-row md:items-end gap-4 justify-between">
         <div className="flex flex-col gap-2">
-          <h1 className="font-serif text-[36px] md:text-[44px] font-semibold leading-tight flex items-center gap-3 flex-wrap">
+          <h1 className="font-serif text-[28px] md:text-[34px] font-semibold leading-tight flex items-center gap-3 flex-wrap">
             Contacts <span className="font-sans text-[13px] font-bold rounded-full bg-card border border-line px-2.5 py-1 tnum">{store.contacts.length} Connections</span>
           </h1>
         </div>
@@ -83,15 +83,15 @@ export function Contacts() {
       ) : rows.length === 0 ? (
         <Card><Empty icon="search_off" title="No matches">Try a different name or clear the filter.</Empty></Card>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="flex flex-col gap-2.5">
           {shown.map(({ c, last }) => (
             <li key={c.id}>
-              <Card className="p-4 md:p-5 grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto] md:items-center hover:shadow-lift transition">
+              <Card className="px-4 py-3 md:px-5 md:py-3.5 grid gap-3 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto] md:items-center hover:shadow-lift transition">
                 <div className="flex gap-4 min-w-0">
-                  <Avatar name={c.name} size={52} />
+                  <Avatar name={c.name} size={44} />
                   <div className="min-w-0 flex flex-col gap-1">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <a href={`#contact-${c.id}`} className="text-[18px] font-bold mr-1 hover:text-brand">{c.name}</a>
+                      <a href={`#contact-${c.id}`} className="text-[17px] font-bold mr-1 hover:text-brand">{c.name}</a>
                       <RoleChips roles={c.roleTypes} school={c.school} />
                     </div>
                     {(c.title || c.company) && <p className="text-fg-2">{c.title}{c.title && c.company ? " at " : ""}<b className="text-fg">{c.company}</b></p>}

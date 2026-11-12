@@ -25,12 +25,12 @@ export function Dashboard() {
   ];
 
   return (
-    <div className="flex flex-col gap-6 rise">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="font-serif text-[34px] md:text-[44px] leading-tight font-semibold tracking-[-0.015em] flex items-center gap-3">
-          {greeting(now)}, {first}! <Icon name="local_cafe" className="text-brand-2 text-[34px] md:text-[40px]" />
+    <div className="flex flex-col gap-4 md:gap-5 rise">
+      <div className="flex flex-col gap-1">
+        <h1 className="font-serif text-[28px] md:text-[34px] leading-tight font-semibold tracking-[-0.015em] flex items-center gap-3">
+          {greeting(now)}, {first}! <Icon name="local_cafe" className="text-brand-2 text-[22px] md:text-[24px]" />
         </h1>
-        <p className="text-fg-2 text-[17px] max-w-[62ch]">
+        <p className="text-fg-2 text-[15px] max-w-[62ch]">
           You have <b className="text-fg">{weekChats} coffee chat{weekChats === 1 ? "" : "s"}</b> scheduled this week and{" "}
           <b className="text-fg">{tasks.length} follow-up{tasks.length === 1 ? "" : "s"}</b> due in the next 7 days.
         </p>
@@ -38,10 +38,10 @@ export function Dashboard() {
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {stats.map((s) => (
-          <Card key={s.label} className="p-4 flex items-start justify-between gap-2">
+          <Card key={s.label} className="px-4 py-3 flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="label-caps text-fg-3">{s.label}</p>
-              <p className="font-serif text-[22px] md:text-[26px] font-semibold mt-1 tnum">{s.value}</p>
+              <p className="font-serif text-[20px] md:text-[22px] font-semibold mt-0.5 tnum">{s.value}</p>
             </div>
             <span className="grid place-items-center w-9 h-9 rounded-lg shrink-0 bg-peach text-on-peach"><Icon name={s.icon} className="text-[20px]" /></span>
           </Card>
@@ -49,17 +49,17 @@ export function Dashboard() {
       </div>
 
       {/* Next chat */}
-      <Card className="p-2 bg-card-2">
+      <Card className="p-1.5 bg-card-2">
         {next && nextContact ? (
-          <div className="rounded-xl bg-card border border-line p-4 md:p-5 flex flex-col md:flex-row md:items-center gap-4">
-            <span className="hidden sm:grid place-items-center w-12 h-12 rounded-xl bg-peach text-on-peach shrink-0"><Icon name="connect_without_contact" /></span>
+          <div className="rounded-xl bg-card border border-line p-3.5 md:p-4 flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+            <span className="hidden sm:grid place-items-center w-10 h-10 rounded-xl bg-peach text-on-peach shrink-0"><Icon name="connect_without_contact" /></span>
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-fg-2 font-semibold">
                 <Chip tone={within24 ? "peach" : "blue"}>{within24 ? "UPCOMING IN 24H" : "NEXT CHAT"}</Chip>
                 <span className="tnum">{relativeDay(next.start)} · {timeRange(next.start, next.durationMin)}</span>
                 {next.format && <span>· {FORMAT_LABEL[next.format]}</span>}
               </div>
-              <h2 className="text-[20px] font-bold mt-1.5">Coffee Chat with {nextContact.name}</h2>
+              <h2 className="text-[18px] font-bold mt-1">Coffee Chat with {nextContact.name}</h2>
               <p className="text-fg-2 text-[15px]">{[nextContact.title && `${nextContact.title}${nextContact.company ? " at " + nextContact.company : ""}`, next.topic && `Topic: ${next.topic}`].filter(Boolean).join(" · ")}</p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -69,10 +69,10 @@ export function Dashboard() {
             </div>
           </div>
         ) : (
-          <div className="rounded-xl bg-card border border-line p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-            <span className="grid place-items-center w-12 h-12 rounded-xl bg-peach text-on-peach shrink-0"><Icon name="event_available" /></span>
+          <div className="rounded-xl bg-card border border-line p-3.5 md:p-4 flex flex-col sm:flex-row sm:items-center gap-3 md:gap-4">
+            <span className="grid place-items-center w-10 h-10 rounded-xl bg-peach text-on-peach shrink-0"><Icon name="event_available" /></span>
             <div className="flex-1">
-              <h2 className="text-[18px] font-bold">No coffee chats on the calendar</h2>
+              <h2 className="text-[17px] font-bold">No coffee chats on the calendar</h2>
               <p className="text-fg-2 text-[15px]">{store.contacts.length ? "Pick someone from your contacts and set up the next conversation." : "Start by adding someone you’d like to learn from."}</p>
             </div>
             <Button variant="primary" icon={store.contacts.length ? "event_available" : "person_add"} onClick={() => go(store.contacts.length ? "schedule" : "add-contact")}>
@@ -99,7 +99,7 @@ export function Dashboard() {
         </Card>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-3 md:gap-4 md:grid-cols-2">
         <ModuleCard icon="contacts" badge={`${store.contacts.length} contact${store.contacts.length === 1 ? "" : "s"} saved`} title="Contact Directory & Notes"
           text="Manage your professional network."
           cta="Go to Contacts" onClick={() => go("contacts")} />
@@ -114,18 +114,18 @@ export function Dashboard() {
 
 function ModuleCard({ icon, badge, title, text, cta, onClick }: { icon: string; badge: string; title: string; text: string; cta: string; onClick: () => void }) {
   return (
-    <Card className="p-2 bg-card-2">
-      <div className="h-full rounded-xl bg-card border border-line p-5 md:p-7 flex flex-col gap-3 relative overflow-hidden">
-        <div aria-hidden="true" className="absolute -top-16 -right-16 w-48 h-48 rounded-full" style={{ background: "radial-gradient(circle, color-mix(in oklab, var(--peach) 60%, transparent), transparent 70%)" }} />
-        <div className="relative flex items-start justify-between gap-3">
-          <span className="grid place-items-center w-12 h-12 rounded-xl bg-peach text-on-peach"><Icon name={icon} /></span>
-          <Chip tone="neutral">{badge}</Chip>
+    <Card className="p-1.5 bg-card-2">
+      <div className="h-full rounded-xl bg-card border border-line px-4 py-3 flex items-center gap-4 relative overflow-hidden">
+        <div aria-hidden="true" className="absolute -top-16 -right-16 w-40 h-40 rounded-full" style={{ background: "radial-gradient(circle, color-mix(in oklab, var(--peach) 60%, transparent), transparent 70%)" }} />
+        <span className="relative grid place-items-center w-10 h-10 rounded-xl bg-peach text-on-peach shrink-0"><Icon name={icon} /></span>
+        <div className="relative flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <h2 className="text-[17px] font-bold tracking-[-0.01em]">{title}</h2>
+            <Chip tone="neutral">{badge}</Chip>
+          </div>
+          <p className="text-fg-2 text-[14px] mt-0.5">{text}</p>
         </div>
-        <h2 className="relative text-[22px] md:text-[24px] font-bold tracking-[-0.01em] mt-2">{title}</h2>
-        <p className="relative text-fg-2">{text}</p>
-        <div className="relative mt-auto pt-4 border-t border-line flex items-center justify-end gap-3">
-          <button type="button" onClick={onClick} className="text-sm font-bold inline-flex items-center gap-1 hover:text-brand">{cta}<Icon name="arrow_forward" className="text-[18px]" /></button>
-        </div>
+        <button type="button" onClick={onClick} className="relative shrink-0 text-sm font-bold inline-flex items-center gap-1 hover:text-brand">{cta}<Icon name="arrow_forward" className="text-[18px]" /></button>
       </div>
     </Card>
   );

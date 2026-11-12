@@ -110,16 +110,16 @@ export function Schedule({ contactId }: { contactId?: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-6 rise">
+    <div className="flex flex-col gap-4 md:gap-5 rise">
       <div className="flex flex-col gap-2">
         <span className="self-start inline-flex items-center gap-1.5 rounded-full bg-peach text-on-peach px-3 py-1 text-[11px] font-bold tracking-[0.06em]"><Icon name="event_available" className="text-[15px]" />SCHEDULE EVENT</span>
-        <h1 className="font-serif text-[36px] md:text-[44px] font-semibold leading-tight">Schedule Event</h1>
-        <p className="text-fg-2 text-[17px] max-w-[62ch]">Schedule a coffee chat or plan a follow-up with a contact.</p>
+        <h1 className="font-serif text-[28px] md:text-[34px] font-semibold leading-tight">Schedule Event</h1>
+        <p className="text-fg-2 text-[15px] max-w-[62ch]">Schedule a coffee chat or plan a follow-up with a contact.</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] items-start">
-        <div className="flex flex-col gap-6 min-w-0">
-          <Card className="p-5 md:p-6 flex flex-col gap-4">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] items-start">
+        <div className="flex flex-col gap-4 min-w-0">
+          <Card className="p-4 md:p-5 flex flex-col gap-4">
             <div className="flex items-center justify-between gap-3">
               <p className="label-caps text-fg-2 flex items-center gap-2"><Icon name="person_search" className="text-[18px]" />Select contact</p>
               <button type="button" onClick={() => go("add-contact")} className="inline-flex items-center gap-1 rounded-full bg-sunken px-3 py-1.5 text-[12px] font-bold text-fg-2 hover:bg-card-2"><Icon name="add" className="text-[16px]" />Create New Contact</button>
@@ -151,7 +151,7 @@ export function Schedule({ contactId }: { contactId?: string }) {
             )}
           </Card>
 
-          <Card className={cx("p-5 md:p-6 flex flex-col gap-5", step < 2 && "opacity-60")}>
+          <Card className={cx("p-4 md:p-5 flex flex-col gap-5", step < 2 && "opacity-60")}>
             <div>
               <Label>Event type</Label>
               <Segmented label="Event type" value={eventType} onChange={setEventType} options={[
@@ -218,7 +218,7 @@ export function Schedule({ contactId }: { contactId?: string }) {
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-24">
           {eventType === "coffee" ? <>
-          <Card className="p-5 md:p-6 flex flex-col gap-4 ai-glow">
+          <Card className="p-4 md:p-5 flex flex-col gap-4 ai-glow">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-[20px] font-bold flex items-center gap-2"><Icon name="neurology" />AI Prep Brief</h2>
               <Chip tone={aiOk ? "peach" : "neutral"}>{aiOk ? "Automatic" : "Unavailable"}</Chip>
@@ -240,7 +240,7 @@ export function Schedule({ contactId }: { contactId?: string }) {
               Download calendar invite (.ics)
             </Button>
           )}
-          </> : <Card className="p-5 md:p-6 flex flex-col gap-3">
+          </> : <Card className="p-4 md:p-5 flex flex-col gap-3">
             <h2 className="text-[20px] font-bold flex items-center gap-2"><Icon name="autorenew" />Follow-up reminder</h2>
             <p className="text-[14px] text-fg-2">This will add a planned follow-up for {c?.name ?? "your contact"} to the Calendar. You can draft a message when it’s time.</p>
           </Card>}

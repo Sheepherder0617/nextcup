@@ -59,16 +59,16 @@ export function CalendarPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 rise">
+    <div className="flex flex-col gap-4 md:gap-5 rise">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="font-serif text-[36px] md:text-[44px] font-semibold leading-tight">NextCup Calendar</h1>
-          <p className="text-fg-2 text-[17px] max-w-[60ch]">Every coffee chat, thank-you note and follow-up in one timeline.</p>
+          <h1 className="font-serif text-[28px] md:text-[34px] font-semibold leading-tight">NextCup Calendar</h1>
+          <p className="text-fg-2 text-[15px] max-w-[60ch]">Every coffee chat, thank-you note and follow-up in one timeline.</p>
         </div>
         <Button variant="primary" icon="add_circle" onClick={() => go("schedule")} className="self-start md:self-auto">Schedule Event</Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] items-start">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] items-start">
         <div className="flex flex-col gap-4 min-w-0">
           <Card className="p-4 flex items-start gap-3 ai-glow">
             <span className="grid place-items-center w-10 h-10 rounded-xl bg-card text-brand border border-line shrink-0"><Icon name="notifications_active" /></span>
@@ -153,7 +153,7 @@ function EventCard({ e, first, onPrep, onLog, onDraft, onDone, onEdit, onDelete,
   const overdue = isOverdue(e);
   const past = e.status === "planned" && e.kind === "coffee" && parseLocal(e.start).getTime() + e.durationMin * 60000 < Date.now();
   return (
-    <Card className={cx("p-4 md:p-5 flex flex-col gap-3", e.status === "done" && "opacity-80")}>
+    <Card className={cx("p-4 flex flex-col gap-2.5", e.status === "done" && "opacity-80")}>
       <div className="flex flex-wrap items-center gap-2">
         <Chip tone={e.kind === "coffee" ? "peach" : e.kind === "thankyou" ? "neutral" : "blue"} icon={KIND_ICON[e.kind]}>{KIND_LABEL[e.kind]}</Chip>
         {first && e.kind === "coffee" && <Chip tone="ink" icon="star">First Meet</Chip>}

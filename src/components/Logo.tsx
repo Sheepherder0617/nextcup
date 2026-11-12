@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { cx } from "./ui";
 
 const CUP = "M54 232 C53 224 57 222 64 225 C77 229 83 239 86 253 C99 318 140 358 202 370 C255 380 307 356 342 313 C366 284 377 252 379 226 C380 212 383 207 395 207 L417 207 C445 207 463 226 465 252 C466 277 454 298 435 311 C418 323 402 323 378 322 C359 348 336 369 309 383 C298 389 294 393 293 405 L293 410 C292 420 271 422 235 423 C202 423 172 421 170 414 C167 409 170 400 165 392 C162 386 153 382 143 376 C92 345 60 294 54 232 Z M407 237 C405 259 399 279 391 295 C407 297 420 288 428 277 C437 264 439 252 431 243 C425 236 416 236 407 237 Z";
 const CAT = "M136 133 C141 129 147 130 151 135 C156 141 152 147 147 153 C131 173 123 194 123 216 C122 223 128 226 133 219 C139 200 147 187 158 179 C164 175 170 178 173 182 C179 190 172 196 167 202 C162 208 159 213 158 219 C156 224 160 225 166 221 C174 217 177 207 183 198 C188 189 195 180 201 179 C207 176 213 181 215 187 C217 194 207 200 203 207 C199 213 197 218 197 223 L231 223 C250 223 259 215 259 193 L259 143 C266 150 271 166 281 175 C295 188 321 188 337 175 C349 165 356 150 363 142 L363 222 C363 280 333 325 287 346 C249 363 210 357 177 341 C132 320 105 282 100 240 C94 201 109 160 136 133 Z";
@@ -37,12 +38,12 @@ export function LogoMark({ size = 40, animated = false }: { size?: number; anima
   );
 }
 
-export function Wordmark({ compact = false }: { compact?: boolean }) {
+export function Wordmark({ small = false }: { compact?: boolean; small?: boolean }) {
   return (
-    <span className="flex items-center gap-2.5">
-      <span className="grid place-items-center w-10 h-10 rounded-xl bg-[#fffaf6] border border-line shadow-soft"><LogoMark size={30} /></span>
+    <span className={cx("flex items-center", small ? "gap-2" : "gap-2.5")}>
+      <span className={cx("grid place-items-center rounded-xl bg-[#fffaf6] border border-line shadow-soft", small ? "w-8 h-8" : "w-10 h-10")}><LogoMark size={small ? 23 : 30} /></span>
       <span className="leading-none">
-        <span className="block font-serif text-[22px] font-semibold tracking-[-0.01em] text-fg">NextCup</span>
+        <span className={cx("block font-serif font-semibold tracking-[-0.01em] text-fg", small ? "text-[19px]" : "text-[22px]")}>NextCup</span>
       </span>
     </span>
   );

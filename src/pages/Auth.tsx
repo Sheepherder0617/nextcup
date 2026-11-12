@@ -1,14 +1,20 @@
 import { useState } from "react";
 import { useStore } from "../lib/store";
+import { useNav } from "../lib/nav";
 import { authErrorText, getSupabase } from "../lib/supabase";
-import { Button, Card, Icon, Input, Label, cx } from "../components/ui";
+import { Button, Card, Icon, Input, Label } from "../components/ui";
 import { Wordmark } from "../components/Logo";
 
 type Mode = "signin" | "signup" | "forgot";
 
-/** Email + password sign-in / sign-up (Supabase). Also handles choosing a new password after a reset link. */
+/**
+ * Email + password sign-in / sign-up (Supabase). Also handles choosing a new password after a reset link.
+ * Sign-up keeps the pitch alongside the form; sign-in (and password reset) is a single centred card.
+ * The two link to each other by route, so each has its own URL.
+ */
 export function AuthPage({ initialMode = "signup" }: { initialMode?: "signin" | "signup" }) {
   const { auth } = useStore();
+  const { go } = useNav();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,34 +52,23 @@ export function AuthPage({ initialMode = "signup" }: { initialMode?: "signin" | 
 
   if (auth.recovering) return <NewPassword />;
 
-  return (
-    <div className="min-h-full gutter py-8 md:py-14 bg-card">
-      <div className="mx-auto max-w-[1080px] grid gap-10 lg:grid-cols-[1fr_minmax(0,460px)] items-start">
-        <div className="flex flex-col gap-6 lg:pt-10">
-          <a href="#welcome" className="self-start rounded-xl"><Wordmark /></a>
-          <h1 className="font-serif font-medium text-[40px] md:text-[54px] leading-[1.05] tracking-[-0.02em]">Your network, one coffee at a time</h1>
-          <p className="text-fg-2 text-[18px] max-w-[44ch]">Create a free account to keep your contacts, chat notes and follow-ups in one private place, on your laptop and your phone.</p>
-          <ul className="flex flex-col gap-2.5 text-fg-2">
-            {[["lock", "Your notes are private to your account"], ["devices", "Same data on every device you sign in on"], ["auto_awesome", "AI prep briefs and thank-you drafts"]].map(([ic, t]) => (
-              <li key={t} className="flex items-center gap-3"><span className="grid place-items-center w-9 h-9 rounded-lg bg-peach text-on-peach"><Icon name={ic} className="text-[20px]" /></span>{t}</li>
-            ))}
-          </ul>
-        </div>
-
-        <Card className="p-5 md:p-8 shadow-lift">
+  const form = (
           <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
-            {mode !== "forgot" ? (
-              <div role="tablist" aria-label="Account" className="grid grid-cols-2 rounded-xl bg-sunken p-1">
-                {([["signup", "Create account"], ["signin", "Sign in"]] as const).map(([m, l]) => (
-                  <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => { setMode(m); setError(""); setNotice(""); }}
-                    className={cx("h-10 rounded-lg text-sm font-semibold transition", mode === m ? "bg-card shadow-soft text-fg" : "text-fg-3 hover:text-fg")}>{l}</button>
-                ))}
-              </div>
-            ) : (
+            {mode === "forgot" ? (
               <div>
                 <button type="button" onClick={() => { setMode("signin"); setError(""); setNotice(""); }} className="inline-flex items-center gap-1.5 text-sm font-semibold text-fg-2 hover:text-fg"><Icon name="arrow_back" className="text-[18px]" />Back to sign in</button>
                 <h2 className="font-serif text-[28px] font-semibold mt-3">Reset your password</h2>
                 <p className="text-fg-2 text-sm mt-1">We’ll email you a link to choose a new one.</p>
+              </div>
+            ) : mode === "signin" ? (
+              <div className="text-center">
+                <h1 className="font-serif text-[30px] font-semibold">Welcome back</h1>
+                <p className="text-fg-2 text-sm mt-1">Sign in to pick up where you left off.</p>
+              </div>
+            ) : (
+              <div>
+                <h2 className="font-serif text-[28px] font-semibold">Create your account</h2>
+                <p className="text-fg-2 text-sm mt-1">It’s free, and your notes stay private to you.</p>
               </div>
             )}
 
@@ -99,8 +94,46 @@ export function AuthPage({ initialMode = "signup" }: { initialMode?: "signin" | 
               {busy ? "One moment…" : mode === "signup" ? "Create account" : mode === "signin" ? "Sign in" : "Send reset link"}
             </Button>
             <p className="text-[12px] text-fg-3 text-center">By continuing you agree to keep other people’s details you save here private.</p>
+
+            {mode === "signup" && (
+              <p className="text-sm text-fg-2 text-center border-t border-line pt-4">
+                Already have an account? <button type="button" onClick={() => go("signin")} className="font-semibold text-brand hover:underline">Sign in</button>
+              </p>
+            )}
+            {mode === "signin" && (
+              <p className="text-sm text-fg-2 text-center border-t border-line pt-4">
+                New to NextCup? <button type="button" onClick={() => go("signup")} className="font-semibold text-brand hover:underline">Start for free</button>
+              </p>
+            )}
           </form>
-        </Card>
+  );
+
+  if (mode !== "signup") {
+    return (
+      <div className="min-h-full gutter py-10 bg-card grid place-items-center">
+        <div className="w-full max-w-[440px] flex flex-col items-center gap-6">
+          <a href="#welcome" className="rounded-xl"><Wordmark /></a>
+          <Card className="w-full p-5 md:p-8 shadow-lift">{form}</Card>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-full gutter py-8 md:py-14 bg-card">
+      <div className="mx-auto max-w-[1080px] grid gap-10 lg:grid-cols-[1fr_minmax(0,460px)] items-start">
+        <div className="flex flex-col gap-6 lg:pt-10">
+          <a href="#welcome" className="self-start rounded-xl"><Wordmark /></a>
+          <h1 className="font-serif font-medium text-[40px] md:text-[54px] leading-[1.05] tracking-[-0.02em]">Your network, one coffee at a time</h1>
+          <p className="text-fg-2 text-[18px] max-w-[44ch]">Create a free account to keep your contacts, chat notes and follow-ups in one private place, on your laptop and your phone.</p>
+          <ul className="flex flex-col gap-2.5 text-fg-2">
+            {[["lock", "Your notes are private to your account"], ["devices", "Same data on every device you sign in on"], ["auto_awesome", "AI prep briefs and thank-you drafts"]].map(([ic, t]) => (
+              <li key={t} className="flex items-center gap-3"><span className="grid place-items-center w-9 h-9 rounded-lg bg-peach text-on-peach"><Icon name={ic} className="text-[20px]" /></span>{t}</li>
+            ))}
+          </ul>
+        </div>
+
+        <Card className="p-5 md:p-8 shadow-lift">{form}</Card>
       </div>
     </div>
   );

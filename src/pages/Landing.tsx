@@ -21,9 +21,9 @@ const PAINS = [
 ];
 
 const STEPS = [
-  { n: "1", title: "Meet", text: "Add someone in seconds after an event, a class or a LinkedIn intro." },
-  { n: "2", title: "Remember", text: "Right after the chat, jot rough notes. NextCup turns them into takeaways and your next step in two minutes." },
-  { n: "3", title: "Reconnect", text: "We remind you to say thank you within a day and check in weeks later, with a topic and a draft message based on what you discussed." },
+  { n: "1", title: "Meet", text: "Add someone in seconds after any event or intro." },
+  { n: "2", title: "Remember", text: "Jot rough notes. AI turns them into takeaways." },
+  { n: "3", title: "Reconnect", text: "Get reminded to follow up, with a draft ready." },
 ];
 
 // Product tour: one silent screen recording (fictional demo data) with clickable chapters.
@@ -53,7 +53,7 @@ export function Landing() {
           <a href="#welcome" className="rounded-xl"><span className="sm:hidden"><Wordmark compact /></span><span className="hidden sm:block"><Wordmark /></span></a>
           <div className="flex items-center gap-1.5 md:gap-2">
             {!profile && <Button variant="ghost" size="sm" onClick={signIn} className="rounded-full h-9 md:px-4">Sign in</Button>}
-            {profile && <Button variant="primary" size="sm" onClick={start} className="rounded-full h-9 px-4">Open app</Button>}
+            <Button variant="primary" size="sm" onClick={start} className="rounded-full h-9 px-4">{profile ? "Open app" : "Start for free"}</Button>
           </div>
         </div>
       </header>
@@ -83,26 +83,7 @@ export function Landing() {
         </div>
       </section>
 
-      {/* ---------- How it works ---------- */}
-      <section id="how" className="gutter scroll-mt-20">
-        <div className="mx-auto max-w-[1180px] py-14 md:py-20">
-          <div className="flex flex-col items-center text-center gap-3 mb-10 md:mb-12">
-            <SectionLabel>How it works</SectionLabel>
-            <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em]">Meet once. Stay connected for good.</h2>
-          </div>
-          <ol className="grid gap-4 md:gap-6 md:grid-cols-3">
-            {STEPS.map((s) => (
-              <li key={s.n} className="rounded-2xl border border-line bg-card-2 p-5 md:p-7 flex flex-col gap-3">
-                <span className="grid place-items-center w-10 h-10 rounded-full bg-ink text-on-ink font-serif text-[20px] font-semibold">{s.n}</span>
-                <h3 className="text-[19px] font-semibold">{s.title}</h3>
-                <p className="text-fg-2 text-[15px]">{s.text}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* ---------- Product tour ---------- */}
+      {/* ---------- How it works: three steps + product tour ---------- */}
       <Tour />
 
       {/* ---------- Privacy ---------- */}
@@ -202,12 +183,23 @@ function Tour() {
   }
 
   return (
-    <section className="gutter bg-card-2 border-y border-line">
+    <section id="how" className="gutter bg-card-2 border-y border-line">
       <div className="mx-auto max-w-[1180px] py-14 md:py-20">
-        <div className="flex flex-col items-center text-center gap-3 mb-8 md:mb-12">
-          <SectionLabel>See it in action</SectionLabel>
-          <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[22ch]">Your whole network, one tap away.</h2>
+        <div className="flex flex-col items-center text-center gap-3 mb-6 md:mb-8">
+          <SectionLabel>How it works</SectionLabel>
+          <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[22ch]">Meet once. Stay connected for good.</h2>
         </div>
+        <ol className="grid grid-cols-3 rounded-2xl border border-line bg-card divide-x divide-line mb-8 md:mb-12 max-w-[900px] mx-auto">
+          {STEPS.map((s) => (
+            <li key={s.n} className="p-3 md:p-5 flex flex-col gap-1 md:gap-1.5">
+              <span className="flex items-center gap-1.5 md:gap-2.5">
+                <span className="grid place-items-center shrink-0 w-6 h-6 md:w-8 md:h-8 rounded-full bg-ink text-on-ink font-serif text-[13px] md:text-[16px] font-semibold">{s.n}</span>
+                <span className="text-[14px] md:text-[17px] font-semibold">{s.title}</span>
+              </span>
+              <span className="text-fg-2 text-[12px] md:text-[14px] leading-snug">{s.text}</span>
+            </li>
+          ))}
+        </ol>
         <div className="grid gap-5 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.1fr)] items-start">
           <ol className="order-2 lg:order-1 grid grid-cols-2 lg:grid-cols-1 gap-2.5 lg:gap-3" aria-label="Tour chapters">
             {TOUR.map((c, i) => (
@@ -226,7 +218,7 @@ function Tour() {
               </li>
             ))}
           </ol>
-          <figure className="relative order-1 lg:order-2 rounded-2xl border border-line-2 bg-card shadow-lift overflow-hidden">
+          <figure id="demo" className="relative order-1 lg:order-2 rounded-2xl border border-line-2 bg-card shadow-lift overflow-hidden">
             <div aria-hidden="true" className="h-8 md:h-9 px-3 flex items-center gap-1.5 border-b border-line bg-header">
               <span className="w-2.5 h-2.5 rounded-full bg-line-2" /><span className="w-2.5 h-2.5 rounded-full bg-line-2" /><span className="w-2.5 h-2.5 rounded-full bg-line-2" />
               <span className="ml-3 flex-1 max-w-[260px] h-5 rounded-md bg-sunken text-[11px] text-fg-3 grid place-items-center">NextCup</span>
@@ -271,7 +263,12 @@ function useReducedMotion() {
 function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean }) {
   const reduced = useReducedMotion();
   const [act, setAct] = useState(0);
-  const shown = reduced ? 2 : act;
+  // Reduced motion: no autoplay and start on the final act, but still let people step through by tap or swipe.
+  const [picked, setPicked] = useState(false);
+  const shown = reduced && !picked ? 2 : act;
+  const pick = (i: number) => { setPicked(true); setAct((i + ACTS.length) % ACTS.length); };
+  // Swipe left for the next act, right for the previous one. Vertical drags are left to page scrolling.
+  const swipe = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     if (reduced) return;
@@ -297,7 +294,7 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
             <Button variant="primary" size="lg" iconRight="arrow_forward" onClick={onStart} className="rounded-full px-7">
               {signedIn ? "Open your workspace" : "Start for free"}
             </Button>
-            <a href="#how" onClick={(e) => { e.preventDefault(); document.getElementById("how")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" }); }}
+            <a href="#how" onClick={(e) => { e.preventDefault(); document.getElementById("demo")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" }); }}
               className="text-[15px] font-semibold text-fg-2 hover:text-fg rounded-md">See how it works ↓</a>
           </div>
           <ul className="flex flex-wrap justify-center lg:justify-start gap-x-5 gap-y-2 text-[13px] font-medium text-fg-3 mt-1">
@@ -308,16 +305,26 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
         </div>
 
         <div className="relative w-full max-w-[640px] mx-auto">
-          <Stage act={shown} />
+          <div className="touch-pan-y select-none"
+            onPointerDown={(e) => { swipe.current = { x: e.clientX, y: e.clientY }; }}
+            onPointerCancel={() => { swipe.current = null; }}
+            onPointerUp={(e) => {
+              const s = swipe.current; swipe.current = null;
+              if (!s) return;
+              const dx = e.clientX - s.x, dy = e.clientY - s.y;
+              if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) pick(shown + (dx < 0 ? 1 : -1));
+            }}>
+            <Stage act={shown} />
+          </div>
           {/* Desktop/tablet: the app card floats over the scene */}
           <div className={cx("hidden md:block absolute right-[-8px] lg:right-[-20px] bottom-[52px] w-[min(330px,58%)] transition-all duration-700 ease-[cubic-bezier(.22,1,.36,1)]",
             shown === 2 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none")}>
             <ContactCard />
           </div>
-          <div className="mt-4 grid">
-            <Steps act={shown} onPick={setAct} className={cx("[grid-area:1/1] self-start transition-opacity duration-500", shown === 2 && "max-md:opacity-0 max-md:pointer-events-none")} />
-            {/* Phone: the card takes the steps' place */}
-            <div className={cx("md:hidden [grid-area:1/1] transition-all duration-700 ease-[cubic-bezier(.22,1,.36,1)]",
+          <Steps act={shown} onPick={pick} className="mt-4" />
+          {/* Phone: the card appears below the steps, so the step labels stay readable */}
+          <div className="md:hidden mt-4">
+            <div className={cx("transition-all duration-700 ease-[cubic-bezier(.22,1,.36,1)]",
               shown === 2 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none")}>
               <ContactCard />
             </div>
@@ -333,9 +340,9 @@ function Stage({ act }: { act: number }) {
     <div className="relative w-full aspect-[3/2.1]" role="img"
       aria-label="Two young professionals run into each other at a networking event. Both wonder when they last talked and what they discussed. She checks NextCup on her phone and sees their whole history.">
       <div aria-hidden="true" className="absolute inset-x-[4%] top-[8%] bottom-0 rounded-t-[999px] rounded-b-[32px] bg-[color-mix(in_oklab,var(--peach)_55%,var(--card))] border border-line" />
-      <img src={IMG("hero-1")} alt="" width={1400} height={933} fetchPriority="high"
+      <img src={IMG("hero-1")} alt="" draggable={false} width={1400} height={933} fetchPriority="high"
         className={cx("absolute inset-x-0 bottom-0 w-full transition-opacity duration-700", act === 0 ? "opacity-100" : "opacity-0")} />
-      <img src={IMG("hero-2")} alt="" width={1400} height={933}
+      <img src={IMG("hero-2")} alt="" draggable={false} width={1400} height={933}
         className={cx("absolute inset-x-0 bottom-0 w-full transition-opacity duration-700", act === 0 ? "opacity-0" : "opacity-100")} />
       <Thought show={act === 0} className="left-[1%] top-[17%] md:top-[24%] w-[47%] md:w-[44%]" tail="left-[48%]" delay={250}>What did we chat about again?</Thought>
       <Thought show={act === 0} className="right-[0%] top-[6%] md:top-[14%] w-[45%] md:w-[42%]" tail="left-[38%]" delay={900}>When did we last talk…?</Thought>

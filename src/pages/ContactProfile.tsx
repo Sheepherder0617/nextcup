@@ -30,18 +30,18 @@ export function ContactProfile({ id }: { id: string }) {
   const last = lastContactOf(c, store.events);
 
   return (
-    <div className="flex flex-col gap-6 rise">
+    <div className="flex flex-col gap-4 md:gap-5 rise">
       <button type="button" onClick={() => go("contacts")} className="self-start inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-card border border-line shadow-soft text-sm font-semibold hover:bg-card-2">
         <Icon name="arrow_back" className="text-[18px]" />Back to Contact Directory
       </button>
 
-      <Card className="p-5 md:p-7 flex flex-col gap-5">
+      <Card className="p-4 md:p-5 flex flex-col gap-5">
         <div className="flex flex-col lg:flex-row gap-5 lg:items-start">
           <div className="flex gap-4 md:gap-5 flex-1 min-w-0">
-            <Avatar name={c.name} size={88} />
+            <Avatar name={c.name} size={64} />
             <div className="min-w-0 flex flex-col gap-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-serif text-[32px] md:text-[42px] leading-none font-semibold tracking-[-0.015em]">{c.name}</h1>
+                <h1 className="font-serif text-[28px] md:text-[34px] leading-none font-semibold tracking-[-0.015em]">{c.name}</h1>
                 <button type="button" onClick={() => go("edit", c.id)} className="inline-flex items-center gap-1 rounded-full bg-sunken px-2.5 py-1 text-[12px] font-bold text-fg-2 hover:bg-card-2"><Icon name="edit" className="text-[14px]" />Edit Details</button>
               </div>
               {(c.title || c.company) && <p className="text-[18px] md:text-[20px] font-semibold text-fg-2">{c.title}{c.title && c.company ? " @ " : ""}{c.company}</p>}
@@ -107,13 +107,13 @@ export function ContactProfile({ id }: { id: string }) {
 function ToolCard({ active, onClick, icon, tag, title, text }: { active: boolean; onClick: () => void; icon: string; tag: string; title: string; text: string }) {
   return (
     <button type="button" aria-pressed={active} onClick={onClick}
-      className={cx("text-left rounded-2xl p-5 border-2 transition flex flex-col gap-2", active ? "bg-card border-ink shadow-lift" : "bg-card-2 border-transparent hover:bg-card")}>
-      <span className="flex items-start justify-between gap-2">
-        <span className="grid place-items-center w-10 h-10 rounded-lg bg-peach text-on-peach"><Icon name={icon} /></span>
+      className={cx("text-left rounded-2xl px-4 py-3 border-2 transition flex flex-col gap-1", active ? "bg-card border-ink shadow-lift" : "bg-card-2 border-transparent hover:bg-card")}>
+      <span className="flex items-center gap-2.5">
+        <span className="grid place-items-center w-8 h-8 rounded-lg bg-peach text-on-peach shrink-0"><Icon name={icon} className="text-[20px]" /></span>
+        <span className="text-[16px] font-bold flex-1 min-w-0">{title}</span>
         <Chip tone={active ? "blue" : "neutral"}>{active ? "Active Tool" : tag}</Chip>
       </span>
-      <span className="text-[19px] font-bold mt-1">{title}</span>
-      <span className="text-[14px] text-fg-2">{text}</span>
+      <span className="text-[13px] text-fg-2">{text}</span>
     </button>
   );
 }
@@ -129,10 +129,10 @@ function HistoryPanel({ c, events, notes, onDraft }: { c: Contact; events: ChatE
   const [open, setOpen] = useState<string | null>(null);
   const sorted = events.slice().sort((a, b) => b.start.localeCompare(a.start));
   return (
-    <Card className="p-5 md:p-7 flex flex-col gap-5">
+    <Card className="p-4 md:p-5 flex flex-col gap-5">
       <div className="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-line">
         <div>
-          <h2 className="font-serif text-[26px] md:text-[30px] font-semibold leading-tight">Meeting History</h2>
+          <h2 className="font-serif text-[22px] md:text-[24px] font-semibold leading-tight">Meeting History</h2>
           <p className="text-fg-2 text-[14px]">All formal and informal interactions with {c.name}.</p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -142,7 +142,7 @@ function HistoryPanel({ c, events, notes, onDraft }: { c: Contact; events: ChatE
       {sorted.length === 0 ? (
         <Empty icon="history" title="No meetings yet">Schedule your first chat, or log one that already happened.</Empty>
       ) : (
-        <ol className="relative flex flex-col gap-6 pl-8">
+        <ol className="relative flex flex-col gap-4 pl-8">
           <span aria-hidden="true" className="absolute left-[11px] top-2 bottom-2 w-px bg-line-2" />
           {sorted.map((e) => {
             const note = notes.find((n) => n.eventId === e.id);
@@ -215,10 +215,10 @@ function LogPanel({ c, notes }: { c: Contact; notes: Note[] }) {
   const sorted = notes.slice().sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || b.date.localeCompare(a.date));
   const blank = (): Note => ({ id: uid("n"), contactId: c.id, date: todayISO(), headline: "", body: "", kind: "prep", createdAt: new Date().toISOString() });
   return (
-    <Card className="p-5 md:p-7 flex flex-col gap-5">
+    <Card className="p-4 md:p-5 flex flex-col gap-5">
       <div className="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-line">
         <div>
-          <h2 className="font-serif text-[26px] md:text-[30px] font-semibold leading-tight flex items-center gap-2">Log History <Chip tone="neutral">{notes.length} Notes</Chip></h2>
+          <h2 className="font-serif text-[22px] md:text-[24px] font-semibold leading-tight flex items-center gap-2">Log History <Chip tone="neutral">{notes.length} Notes</Chip></h2>
           <p className="text-fg-2 text-[14px]">Logged messages with {c.name.split(" ")[0]}.</p>
         </div>
         <Button variant="primary" icon="add" onClick={() => setEdit(blank())}>New Note</Button>
@@ -319,10 +319,10 @@ function IdeasPanel({ c, notes }: { c: Contact; notes: Note[] }) {
   }
 
   return (
-    <Card className="p-5 md:p-7 flex flex-col gap-5">
+    <Card className="p-4 md:p-5 flex flex-col gap-5">
       <div className="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-line">
         <div>
-          <h2 className="font-serif text-[26px] md:text-[30px] font-semibold leading-tight">Proactive Re-engagement Suggestions</h2>
+          <h2 className="font-serif text-[22px] md:text-[24px] font-semibold leading-tight">Proactive Re-engagement Suggestions</h2>
           <p className="text-fg-2 text-[14px]">Low-pressure ways to stay on {c.name.split(" ")[0]}’s radar, based on your log history.</p>
         </div>
         {aiOk && <Button variant="ai" icon="auto_awesome" disabled={busy} onClick={gen}>{ideas ? "Regenerate" : "Generate ideas"}</Button>}
@@ -385,12 +385,12 @@ function PrepPanel({ c, notes, next }: { c: Contact; notes: Note[]; next?: ChatE
   useEffect(() => () => ctl.current?.abort(), []);
 
   return (
-    <div className="flex flex-col gap-6">
-      <Card className="p-5 md:p-7 flex flex-col gap-5 ai-glow">
+    <div className="flex flex-col gap-4">
+      <Card className="p-4 md:p-5 flex flex-col gap-5 ai-glow">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="label-caps text-brand flex items-center gap-1.5"><Icon name="auto_awesome" className="text-[15px]" />AI Prep Brief</p>
-            <h2 className="font-serif text-[26px] md:text-[30px] font-semibold leading-tight">{next ? `For ${relativeDay(next.start).toLowerCase() === "today" || relativeDay(next.start).toLowerCase() === "tomorrow" ? relativeDay(next.start).toLowerCase() + "’s" : "your"} chat` : "Before you meet"}</h2>
+            <h2 className="font-serif text-[22px] md:text-[24px] font-semibold leading-tight">{next ? `For ${relativeDay(next.start).toLowerCase() === "today" || relativeDay(next.start).toLowerCase() === "tomorrow" ? relativeDay(next.start).toLowerCase() + "’s" : "your"} chat` : "Before you meet"}</h2>
           </div>
           <div className="flex gap-2 flex-wrap">
             {aiOk && <Button variant="secondary" icon="forum" onClick={() => openPrep(c.id, next?.id)}>Ask the assistant</Button>}

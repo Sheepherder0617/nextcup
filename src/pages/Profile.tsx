@@ -18,15 +18,15 @@ export function ProfilePage() {
   const save = (patch: Partial<Profile>) => store.saveProfile({ ...p, ...patch });
 
   return (
-    <div className="flex flex-col gap-6 rise">
-      <Card className="p-5 md:p-7 flex flex-col md:flex-row gap-5 md:items-center">
-        <Avatar name={p.name} src={store.viewer.avatarUrl} size={96} />
+    <div className="flex flex-col gap-4 md:gap-5 rise">
+      <Card className="p-4 md:p-5 flex flex-col md:flex-row gap-5 md:items-center">
+        <Avatar name={p.name} src={store.viewer.avatarUrl} size={68} />
         <div className="flex-1 min-w-0 flex flex-col gap-1.5">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="font-serif text-[34px] md:text-[42px] leading-none font-semibold">{p.name}</h1>
+            <h1 className="font-serif text-[28px] md:text-[34px] leading-none font-semibold">{p.name}</h1>
             <Chip tone={p.status === "active" ? "blue" : "neutral"} icon="circle">{p.status === "active" ? "ACTIVE JOB SEARCH" : p.status === "exploring" ? "EXPLORING" : "PAUSED"}{p.cycle ? ` · ${p.cycle.toUpperCase()}` : ""}</Chip>
           </div>
-          <p className="text-fg-2 text-[17px]">{[p.headline, p.school].filter(Boolean).join(" · ")}</p>
+          <p className="text-fg-2 text-[15px]">{[p.headline, p.school].filter(Boolean).join(" · ")}</p>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-[14px] text-fg-2">
             {p.location && <span className="inline-flex items-center gap-1.5"><Icon name="location_on" className="text-[17px]" />{p.location}</span>}
             {p.school && <span className="inline-flex items-center gap-1.5"><Icon name="school" className="text-[17px]" />{p.school}</span>}
@@ -42,7 +42,7 @@ export function ProfilePage() {
       <div role="tablist" aria-label="Profile sections" className="flex gap-2 overflow-x-auto pb-1 border-b border-line">
         {([["overview", "Overview & Goals"], ["resume", "Resume & Background"], ["privacy", "Appearance"]] as const).map(([k, l]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-            className={cx("h-10 px-4 rounded-lg text-sm font-semibold whitespace-nowrap border mb-2", tab === k ? "bg-ink text-on-ink border-transparent" : "bg-card border-line text-fg-2 hover:bg-card-2")}>{l}</button>
+            className={cx("h-9 px-4 rounded-lg text-sm font-semibold whitespace-nowrap border mb-2", tab === k ? "bg-ink text-on-ink border-transparent" : "bg-card border-line text-fg-2 hover:bg-card-2")}>{l}</button>
         ))}
       </div>
 
@@ -78,11 +78,11 @@ function ListEditor({ id, label, items, onChange, placeholder, tone = "sand" }: 
 function Overview({ p, save }: { p: Profile; save: (x: Partial<Profile>) => Promise<void> }) {
   return (
     <div className="w-full">
-      <Card className="p-5 md:p-7 flex flex-col gap-5">
+      <Card className="p-4 md:p-5 flex flex-col gap-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex gap-3 min-w-0">
             <span className="grid place-items-center w-10 h-10 rounded-lg bg-sunken text-brand shrink-0"><Icon name="flag" /></span>
-            <div><h2 className="font-serif text-[26px] font-semibold leading-tight">Career Goals & Target Roles</h2><p className="text-[13px] text-fg-3">Target roles and wishlist companies feed every AI brief</p></div>
+            <div><h2 className="font-serif text-[22px] font-semibold leading-tight">Career Goals & Target Roles</h2><p className="text-[13px] text-fg-3">Target roles and wishlist companies feed every AI brief</p></div>
           </div>
           {p.cycle && <Chip tone="peach">{p.cycle}</Chip>}
         </div>
@@ -118,11 +118,11 @@ function Resume({ p, save }: { p: Profile; save: (x: Partial<Profile>) => Promis
     } catch (e) { setErr(aiErrorText(e)); } finally { setBusy(false); }
   }
   return (
-    <Card className="p-5 md:p-7 flex flex-col gap-5">
+    <Card className="p-4 md:p-5 flex flex-col gap-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex gap-3">
           <span className="grid place-items-center w-10 h-10 rounded-lg bg-sunken text-brand"><Icon name="description" /></span>
-          <div><h2 className="font-serif text-[26px] font-semibold leading-tight">Resume & Extracted Background</h2><p className="text-[13px] text-fg-3">Used to find common ground and write your intros</p></div>
+          <div><h2 className="font-serif text-[22px] font-semibold leading-tight">Resume & Extracted Background</h2><p className="text-[13px] text-fg-3">Used to find common ground and write your intros</p></div>
         </div>
         {p.skills.length > 0 && <Chip tone="blue" icon="check_circle">Parsed</Chip>}
       </div>
@@ -165,9 +165,9 @@ function Privacy() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2 items-start">
-      <Card className="p-5 md:p-7 flex flex-col gap-4">
-        <h2 className="font-serif text-[26px] font-semibold">Where your data lives</h2>
+    <div className="grid gap-4 lg:grid-cols-2 items-start">
+      <Card className="p-4 md:p-5 flex flex-col gap-4">
+        <h2 className="font-serif text-[22px] font-semibold">Where your data lives</h2>
         <div className="rounded-xl bg-card-2 border border-line p-4 flex gap-3">
           <Icon name={store.mode === "local" ? "smartphone" : "cloud_done"} className="text-brand text-[24px]" />
           <p className="text-[14px] text-fg-2">{store.mode === "cloud"
@@ -184,8 +184,8 @@ function Privacy() {
           <Button variant="ghost" icon="delete_forever" className="text-danger" onClick={() => setConfirm(true)}>Delete everything</Button>
         </div>
       </Card>
-      <Card className="p-5 md:p-7 flex flex-col gap-4">
-        <h2 className="font-serif text-[26px] font-semibold">Appearance</h2>
+      <Card className="p-4 md:p-5 flex flex-col gap-4">
+        <h2 className="font-serif text-[22px] font-semibold">Appearance</h2>
         <div className="flex items-center justify-between gap-3">
           <p className="text-[14px] text-fg-2">Theme on this device</p>
           <Segmented label="Theme" value={theme} onChange={setTheme} options={[{ value: "system", label: "System" }, { value: "light", label: "Light" }, { value: "dark", label: "Dark" }]} />

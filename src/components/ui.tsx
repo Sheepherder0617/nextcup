@@ -23,7 +23,7 @@ export function Button({ variant = "secondary", size = "md", icon, iconRight, cl
       {...rest}
       className={cx(
         "inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap",
-        size === "sm" ? "text-[13px] px-3 h-8" : size === "lg" ? "text-[15px] px-5 h-12" : "text-sm px-4 h-10",
+        size === "sm" ? "text-[13px] px-3 h-8" : size === "lg" ? "text-[15px] px-5 h-11" : "text-sm px-4 h-9",
         BTN[variant], className,
       )}
     >
@@ -82,7 +82,7 @@ export function Label({ htmlFor, children, hint }: { htmlFor?: string; children:
   );
 }
 
-const fieldBase = "w-full rounded-lg bg-sunken border border-transparent px-3 py-2.5 text-[15px] outline-none transition focus:border-brand-2 focus:bg-card focus:ring-4 focus:ring-[color-mix(in_oklab,var(--brand-2)_18%,transparent)]";
+const fieldBase = "w-full rounded-lg bg-sunken border border-transparent px-3 py-2 text-[15px] outline-none transition focus:border-brand-2 focus:bg-card focus:ring-4 focus:ring-[color-mix(in_oklab,var(--brand-2)_18%,transparent)]";
 export function Input({ icon, className, ...rest }: InputHTMLAttributes<HTMLInputElement> & { icon?: string }) {
   return (
     <div className="relative">
@@ -170,7 +170,7 @@ export function Thinking({ label = "Thinking" }: { label?: string }) {
 
 export function Empty({ icon, title, children, action }: { icon: string; title: string; children?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="text-center px-6 py-12 flex flex-col items-center gap-3">
+    <div className="text-center px-6 py-8 flex flex-col items-center gap-3">
       <span className="grid place-items-center w-14 h-14 rounded-2xl bg-peach text-on-peach"><Icon name={icon} className="text-[28px]" /></span>
       <h3 className="font-serif text-[22px] font-semibold">{title}</h3>
       {children && <p className="text-fg-2 max-w-[44ch]">{children}</p>}

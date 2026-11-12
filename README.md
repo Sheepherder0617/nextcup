@@ -1,5 +1,6 @@
-# NextCup — Coffee Chat Tracker
+# NextCup — Coffee Chat AI Assistant 
 https://nextcup-rotman.vercel.app/
+
 A web app for students to prep for coffee chats, log what they learned in two minutes, and never miss the thank-you or follow-up. Built from our Stitch designs (Warm Editorial Professional).
 
 ## What works today

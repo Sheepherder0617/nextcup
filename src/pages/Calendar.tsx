@@ -70,13 +70,17 @@ export function CalendarPage() {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] items-start">
         <div className="flex flex-col gap-4 min-w-0">
-          <Card className="p-4 flex items-start gap-3 ai-glow">
-            <span className="grid place-items-center w-10 h-10 rounded-xl bg-card text-brand border border-line shrink-0"><Icon name="notifications_active" /></span>
+          <Card className="calendar-reminder p-4 flex items-start gap-3 ai-glow">
+            <span className="calendar-reminder-icon grid place-items-center w-10 h-10 rounded-xl bg-card text-brand border border-line shrink-0"><Icon name="notifications_active" /></span>
             <div className="flex-1">
               <p className="font-semibold flex items-center gap-2">Calendar reminders <Chip tone="blue">Live</Chip></p>
               <p className="text-[14px] text-fg-2">Use <b>.ics</b> on any chat to add it to your phone calendar with a reminder the day before and 30 minutes before. Open the AI brief the evening before to prep.</p>
             </div>
           </Card>
+
+          <div className="calendar-mobile-month">
+            <MiniMonth month={month} setMonth={setMonth} events={store.events} selected={day} onPick={(d) => { setDay(d === day ? null : d); setRange("all"); }} />
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
             <div className="w-full sm:w-52">
@@ -87,7 +91,7 @@ export function CalendarPage() {
                 <option value="all">All events ({counts.all})</option>
               </Select>
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" role="group" aria-label="Filter by type">
+            <div className="calendar-filter-scroll flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" role="group" aria-label="Filter by type">
               {(["all", "coffee", "thankyou", "followup"] as const).map((k) => (
                 <button key={k} type="button" aria-pressed={kind === k} onClick={() => setKind(k)}
                   className={cx("inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-[13px] font-semibold border whitespace-nowrap",
@@ -119,7 +123,7 @@ export function CalendarPage() {
           ))}
         </div>
 
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-24">
+        <aside className="calendar-sidebar flex flex-col gap-4 lg:sticky lg:top-24">
           <MiniMonth month={month} setMonth={setMonth} events={store.events} selected={day} onPick={(d) => { setDay(d === day ? null : d); setRange("all"); }} />
         </aside>
       </div>

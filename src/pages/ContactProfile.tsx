@@ -38,15 +38,15 @@ export function ContactProfile({ id }: { id: string }) {
       <Card className="p-5 md:p-7 flex flex-col gap-5">
         <div className="flex flex-col lg:flex-row gap-5 lg:items-start">
           <div className="flex gap-4 md:gap-5 flex-1 min-w-0">
-            <Avatar name={c.name} size={88} />
+            <span className="contact-profile-avatar"><Avatar name={c.name} size={88} /></span>
             <div className="min-w-0 flex flex-col gap-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-serif text-[32px] md:text-[42px] leading-none font-semibold tracking-[-0.015em]">{c.name}</h1>
-                <button type="button" onClick={() => go("edit", c.id)} className="inline-flex items-center gap-1 rounded-full bg-sunken px-2.5 py-1 text-[12px] font-bold text-fg-2 hover:bg-card-2"><Icon name="edit" className="text-[14px]" />Edit Details</button>
+                <h1 className="contact-profile-name font-serif text-[32px] md:text-[42px] leading-none font-semibold tracking-[-0.015em]">{c.name}</h1>
+                <button type="button" onClick={() => go("edit", c.id)} className="contact-edit-desktop inline-flex items-center gap-1 rounded-full bg-sunken px-2.5 py-1 text-[12px] font-bold text-fg-2 hover:bg-card-2"><Icon name="edit" className="text-[14px]" />Edit Details</button>
               </div>
               {(c.title || c.company) && <p className="text-[18px] md:text-[20px] font-semibold text-fg-2">{c.title}{c.title && c.company ? " @ " : ""}{c.company}</p>}
-              <MetLine c={c} />
-              <div className="flex flex-wrap gap-3 text-[13px] text-fg-3">
+              <div className="contact-profile-met-line"><MetLine c={c} /></div>
+              <div className="contact-profile-links flex flex-wrap gap-3 text-[13px] text-fg-3">
                 {c.email && <span className="inline-flex items-center gap-1 select-all"><Icon name="mail" className="text-[15px]" />{c.email}</span>}
                 {c.linkedin && <a className="inline-flex items-center gap-1 text-brand font-semibold" href={c.linkedin} target="_blank" rel="noreferrer"><Icon name="open_in_new" className="text-[15px]" />LinkedIn</a>}
               </div>
@@ -72,7 +72,10 @@ export function ContactProfile({ id }: { id: string }) {
         <div className="pt-4 border-t border-line flex flex-wrap items-center gap-x-6 gap-y-3">
           {c.roleTypes.length > 0 && <div className="flex flex-wrap gap-1.5"><RoleChips roles={c.roleTypes} school={c.school} /></div>}
           {c.goals.length > 0 && <div className="flex flex-wrap items-center gap-1.5"><span className="label-caps text-fg-3 mr-1">Outreach goals:</span><GoalChips goals={c.goals} /></div>}
-          <span className="text-[13px] text-fg-3 lg:ml-auto tnum">Last contact: {last ? formatDate(last) : "not yet"}</span>
+          <div className="contact-last-row text-[13px] text-fg-3 lg:ml-auto">
+            <span className="tnum">Last contact: {last ? formatDate(last) : "not yet"}</span>
+            <button type="button" onClick={() => go("edit", c.id)} className="contact-edit-mobile inline-flex items-center gap-1 rounded-full bg-sunken px-2.5 py-1 font-bold text-fg-2 hover:bg-card-2"><Icon name="edit" className="text-[14px]" />Edit Details</button>
+          </div>
         </div>
       </Card>
 
@@ -87,7 +90,7 @@ export function ContactProfile({ id }: { id: string }) {
 
       {tab === "overview" ? (
         <>
-          <div className="grid gap-3 md:gap-4 md:grid-cols-3" role="group" aria-label="Tools">
+          <div className="contact-tool-cards grid gap-3 md:gap-4 md:grid-cols-3" role="group" aria-label="Tools">
             <ToolCard active={tool === "history"} onClick={() => setTool("history")} icon="history_edu" tag={`${events.length} event${events.length === 1 ? "" : "s"}`} title="Meeting History" text="All chats, follow-up touchpoints, and thank you messages." />
             <ToolCard active={tool === "log"} onClick={() => setTool("log")} icon="edit_note" tag="Notes & Debriefs" title="Log History" text="Logged coffee chats, follow-up messages, and quick notes." />
             <ToolCard active={tool === "ideas"} onClick={() => setTool("ideas")} icon="lightbulb" tag={`${store.profile?.followUpWeeks ?? 3}-wk cadence`} title="Follow-up Ideas" text="AI re-engagement hooks tailored to what you discussed." />
@@ -106,14 +109,14 @@ export function ContactProfile({ id }: { id: string }) {
 
 function ToolCard({ active, onClick, icon, tag, title, text }: { active: boolean; onClick: () => void; icon: string; tag: string; title: string; text: string }) {
   return (
-    <button type="button" aria-pressed={active} onClick={onClick}
+    <button type="button" aria-label={title} aria-pressed={active} onClick={onClick}
       className={cx("text-left rounded-2xl p-5 border-2 transition flex flex-col gap-2", active ? "bg-card border-ink shadow-lift" : "bg-card-2 border-transparent hover:bg-card")}>
-      <span className="flex items-start justify-between gap-2">
-        <span className="grid place-items-center w-10 h-10 rounded-lg bg-peach text-on-peach"><Icon name={icon} /></span>
-        <Chip tone={active ? "blue" : "neutral"}>{active ? "Active Tool" : tag}</Chip>
+      <span className="contact-tool-card-heading flex items-start justify-between gap-2">
+        <span className="contact-tool-card-icon grid place-items-center w-10 h-10 rounded-lg bg-peach text-on-peach"><Icon name={icon} /></span>
+        <Chip className="contact-tool-card-tag" tone={active ? "blue" : "neutral"}>{active ? "Active Tool" : tag}</Chip>
       </span>
-      <span className="text-[19px] font-bold mt-1">{title}</span>
-      <span className="text-[14px] text-fg-2">{text}</span>
+      <span className="contact-tool-card-title text-[19px] font-bold mt-1">{title}</span>
+      <span className="contact-tool-card-description text-[14px] text-fg-2">{text}</span>
     </button>
   );
 }
@@ -226,32 +229,29 @@ function LogPanel({ c, notes }: { c: Contact; notes: Note[] }) {
       {sorted.length === 0 ? <Empty icon="edit_note" title="No notes yet">Jot down prep questions before the chat, or your first impression from where you met.</Empty> : (
         <ul className="flex flex-col gap-3">
           {sorted.map((n) => (
-            <li key={n.id} className="rounded-xl border border-line bg-card-2 p-4 md:p-5 flex flex-col gap-2">
-              <div className="flex flex-wrap items-center gap-2 justify-between">
-                <div className="flex flex-wrap items-center gap-2">
+            <li key={n.id} className="log-note-card rounded-xl border border-line bg-card-2 p-4 md:p-5 flex flex-col gap-2">
+              <div className="log-note-meta flex flex-wrap items-center gap-2">
                   {n.pinned && <Chip tone="ink" icon="push_pin">Pinned</Chip>}
                   <Chip tone={n.kind === "debrief" ? "blue" : "sand"}>{KIND_NOTE[n.kind]}</Chip>
                   <span className="text-[13px] text-fg-3 tnum">{formatDate(n.date)}</span>
-                </div>
-                <div className="flex gap-1">
-                  <Button size="sm" variant="ghost" icon="push_pin" aria-label={n.pinned ? "Unpin" : "Pin"} onClick={() => store.upsertNote({ ...n, pinned: !n.pinned })} />
-                  <Button size="sm" variant="ghost" icon="edit" aria-label="Edit note" onClick={() => setEdit(n)} />
-                  <Button size="sm" variant="ghost" icon="delete" aria-label="Delete note" onClick={() => setDel(n)} />
-                </div>
               </div>
-              <button type="button" aria-expanded={expanded === n.id} aria-controls={`log-note-${n.id}`}
-                onClick={() => setExpanded(expanded === n.id ? null : n.id)}
-                className="flex w-full items-center justify-between gap-3 text-left">
-                <span className="text-[17px] font-bold">{n.headline}</span>
-                <span className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold text-fg-3">
-                  {expanded === n.id ? "Hide note" : "View note"}
-                  <Icon name={expanded === n.id ? "expand_less" : "expand_more"} className="text-[20px]" />
-                </span>
-              </button>
+              <span className="log-note-headline text-[17px] font-bold">{n.headline}</span>
               {expanded === n.id && <div id={`log-note-${n.id}`} className="border-t border-line pt-3">
                 <p className="text-[14px] text-fg-2 whitespace-pre-wrap leading-relaxed">{n.body}</p>
                 {n.nextStep && <p className="text-[13px] font-semibold mt-2"><Icon name="flag" className="text-[15px] align-[-3px] mr-1 text-brand" />Next step: {n.nextStep}</p>}
               </div>}
+              <div className="log-note-actions flex items-center justify-between gap-2 pt-1">
+                <div className="log-note-action-buttons flex gap-1">
+                  <Button size="sm" variant="ghost" icon="push_pin" aria-label={n.pinned ? "Unpin" : "Pin"} onClick={() => store.upsertNote({ ...n, pinned: !n.pinned })} />
+                  <Button size="sm" variant="ghost" icon="edit" aria-label="Edit note" onClick={() => setEdit(n)} />
+                  <Button size="sm" variant="ghost" icon="delete" aria-label="Delete note" onClick={() => setDel(n)} />
+                </div>
+                <Button className="log-note-view" size="sm" variant="ghost" iconRight={expanded === n.id ? "expand_less" : "expand_more"}
+                  aria-expanded={expanded === n.id} aria-controls={`log-note-${n.id}`}
+                  onClick={() => setExpanded(expanded === n.id ? null : n.id)}>
+                  {expanded === n.id ? "Hide note" : "View note"}
+                </Button>
+              </div>
             </li>
           ))}
         </ul>
@@ -280,7 +280,7 @@ function NoteModal({ note, onClose, onSave }: { note: Note | null; onClose: () =
               {(Object.keys(KIND_NOTE) as NoteKind[]).map((k) => <option key={k} value={k}>{KIND_NOTE[k]}</option>)}
             </Select></div>
         </div>
-        <div><Label htmlFor="nm-head">Headline</Label><Input id="nm-head" value={n.headline} onChange={(e) => setN({ ...n, headline: e.target.value })} placeholder="Pre-chat questions & hooks" /></div>
+        <div><Label htmlFor="nm-head" hint="Required">Title</Label><Input id="nm-head" required value={n.headline} onChange={(e) => setN({ ...n, headline: e.target.value })} placeholder="Pre-chat questions & hooks" /></div>
         <div><Label htmlFor="nm-body">Details</Label><TextArea id="nm-body" rows={6} value={n.body} onChange={(e) => setN({ ...n, body: e.target.value })} /></div>
         <div><Label htmlFor="nm-next" hint="Optional">Next step</Label><Input id="nm-next" value={n.nextStep ?? ""} onChange={(e) => setN({ ...n, nextStep: e.target.value })} /></div>
       </div>

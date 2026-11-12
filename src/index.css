@@ -148,6 +148,75 @@ input, textarea, select { font: inherit; color: inherit; }
 }
 .scroll-thin { scrollbar-width: thin; }
 
+.calendar-mobile-month { display: none; }
+.profile-identity { display: contents; }
+.profile-mobile-name { display: none; }
+.contact-edit-mobile { display: none; }
+.contact-last-row { display: contents; }
+.contact-details { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: center; gap: 4px 6px; }
+.contact-title, .contact-details > .inline-flex { grid-column: 1 / -1; }
+.contact-role-tags { grid-column: 2; grid-row: 1; display: flex; flex-wrap: wrap; gap: 6px; }
+@media (min-width: 640px) {
+  .log-note-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "meta actions" "headline view" "body body"; align-items: center; column-gap: 12px; row-gap: 8px; }
+  .log-note-meta { grid-area: meta; }
+  .log-note-actions { display: contents; }
+  .log-note-action-buttons { grid-area: actions; }
+  .log-note-headline { grid-area: headline; }
+  .log-note-view { grid-area: view; justify-self: end; }
+  .log-note-card > .border-t { grid-area: body; }
+}
+@media (max-width: 639px) {
+  .log-note-card { align-items: flex-start; }
+  .log-note-meta, .log-note-headline, .log-note-card > .border-t { width: 100%; text-align: left; }
+  .log-note-actions { width: 100%; justify-content: flex-start; }
+  .log-note-view { margin-left: auto; }
+  .contact-profile-avatar > span { width: 68px !important; height: 68px !important; font-size: 27.2px !important; }
+  .contact-profile-name { font-size: 27px; }
+  .contact-edit-desktop { display: none; }
+  .contact-last-row { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; }
+  .contact-edit-mobile { display: inline-flex; flex-shrink: 0; }
+  .contact-profile-met-line { width: calc(100% + 84px); margin-top: 8px; margin-left: -84px; }
+  .contact-profile-links { width: calc(100% + 84px); margin-left: -84px; }
+  .calendar-mobile-month { display: block; }
+  .calendar-sidebar { display: none; }
+  .contact-filter-scroll, .calendar-filter-scroll { padding-bottom: 12px; }
+  .dashboard-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .dashboard-stat { padding: 8px 8px 4px; }
+  .dashboard-stat-icon { display: none; }
+  .dashboard-stat-content { flex: 1; text-align: center; }
+  .dashboard-stat .label-caps { font-size: 9px; letter-spacing: 0.02em; }
+  .dashboard-stat-value { margin-top: 2px; font-size: 24px; white-space: nowrap; }
+  .dashboard-stat-detail { display: none; }
+  .calendar-reminder { padding: 12px; }
+  .calendar-reminder-icon { display: none; }
+  .profile-identity { display: flex; align-items: center; gap: 12px; }
+  .profile-identity > span { width: 80px !important; height: 80px !important; font-size: 32px !important; }
+  .profile-mobile-name { display: block; min-width: 0; font-size: 30px; overflow-wrap: anywhere; }
+  .profile-desktop-name { display: none; }
+  .profile-goals-icon { display: none; }
+  .profile-goals-title { font-size: 22px; white-space: nowrap; }
+  .profile-goals-description { margin-left: 0; text-align: left; }
+  .profile-resume-icon { display: none; }
+  .profile-resume-title { font-size: 22px; white-space: nowrap; }
+  .profile-resume-description { margin-left: 0; text-align: left; }
+  .profile-appearance-card { padding-top: 16px; padding-bottom: 16px; }
+  .contact-tool-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .contact-tool-cards > button { align-items: center; justify-content: center; min-width: 0; min-height: 64px; padding: 8px; border: 1px solid var(--line-2); background: var(--card); box-shadow: 0 1px 2px rgb(var(--shadow) / 0.06), 0 8px 24px -12px rgb(var(--shadow) / 0.18); }
+  .contact-tool-cards > button[aria-pressed="true"] { border-color: var(--ink); background: var(--peach); box-shadow: 0 2px 6px rgb(var(--shadow) / 0.14); }
+  .contact-tool-card-heading, .contact-tool-card-icon, .contact-tool-card-tag, .contact-tool-card-description { display: none; }
+  .contact-tool-card-title { display: block; width: 100%; max-width: 84px; margin-top: 0; font-size: 14px; line-height: 1.2; text-align: center; }
+  .contact-row { padding: 10px; gap: 8px; }
+  .contact-identity { gap: 10px; }
+  .contact-avatar > span { width: 40px !important; height: 40px !important; font-size: 16px !important; }
+  .contact-details { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+  .contact-name { font-size: 16px; }
+  .contact-title { font-size: 13px; line-height: 1.25; }
+  .contact-role-tags { display: flex; flex-wrap: wrap; gap: 2px 4px; margin-top: 3px; }
+  .contact-role-tags > .inline-flex { padding-left: 6px; padding-right: 6px; font-size: 9px; }
+  .contact-profile-button { height: 34px; padding-left: 10px; padding-right: 10px; gap: 6px; font-size: 12px; }
+  .contact-profile-button .ms { font-size: 16px; }
+}
+
 /* Logo motion (from the Stitch logo animation) */
 .nc-anim .nc-cup { transform-origin: 260px 350px; animation: nc-cup 2.2s linear both; }
 .nc-anim .nc-cat { transform-origin: 260px 300px; animation: nc-cat 2.2s linear both; }

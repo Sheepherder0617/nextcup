@@ -19,9 +19,9 @@ export function Dashboard() {
   const unlogged = needsDebrief(store.events, now);
   const within24 = next ? parseLocal(next.start).getTime() - now.getTime() < 86400000 : false;
   const stats = [
-    { label: "Total contacts", value: `${store.contacts.length} Contacts`, icon: "group" },
-    { label: "Completed chats", value: `${store.events.filter((e) => e.kind === "coffee" && e.status === "done").length} Logged`, icon: "local_cafe" },
-    { label: "Upcoming chats", value: `${chats.length} Scheduled`, icon: "calendar_month" },
+    { label: "Total contacts", value: store.contacts.length, detail: "Contacts", icon: "group" },
+    { label: "Completed chats", value: store.events.filter((e) => e.kind === "coffee" && e.status === "done").length, detail: "Logged", icon: "local_cafe" },
+    { label: "Upcoming chats", value: chats.length, detail: "Scheduled", icon: "calendar_month" },
   ];
 
   return (
@@ -36,14 +36,16 @@ export function Dashboard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+      <div className="dashboard-stats grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {stats.map((s) => (
-          <Card key={s.label} className="p-4 flex items-start justify-between gap-2">
-            <div className="min-w-0">
+          <Card key={s.label} className="dashboard-stat p-4 flex items-start justify-between gap-2">
+            <div className="dashboard-stat-content min-w-0">
               <p className="label-caps text-fg-3">{s.label}</p>
-              <p className="font-serif text-[22px] md:text-[26px] font-semibold mt-1 tnum">{s.value}</p>
+              <p className="dashboard-stat-value font-serif text-[22px] md:text-[26px] font-semibold mt-1 tnum">
+                {s.value}<span className="dashboard-stat-detail"> {s.detail}</span>
+              </p>
             </div>
-            <span className="grid place-items-center w-9 h-9 rounded-lg shrink-0 bg-peach text-on-peach"><Icon name={s.icon} className="text-[20px]" /></span>
+            <span className="dashboard-stat-icon grid place-items-center w-9 h-9 rounded-lg shrink-0 bg-peach text-on-peach"><Icon name={s.icon} className="text-[20px]" /></span>
           </Card>
         ))}
       </div>

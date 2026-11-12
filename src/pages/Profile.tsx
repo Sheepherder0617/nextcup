@@ -20,10 +20,13 @@ export function ProfilePage() {
   return (
     <div className="flex flex-col gap-6 rise">
       <Card className="p-5 md:p-7 flex flex-col md:flex-row gap-5 md:items-center">
-        <Avatar name={p.name} src={store.viewer.avatarUrl} size={96} />
+        <div className="profile-identity">
+          <Avatar name={p.name} src={store.viewer.avatarUrl} size={96} />
+          <h1 className="profile-mobile-name font-serif leading-none font-semibold">{p.name}</h1>
+        </div>
         <div className="flex-1 min-w-0 flex flex-col gap-1.5">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="font-serif text-[34px] md:text-[42px] leading-none font-semibold">{p.name}</h1>
+            <h1 className="profile-desktop-name font-serif text-[34px] md:text-[42px] leading-none font-semibold">{p.name}</h1>
             <Chip tone={p.status === "active" ? "blue" : "neutral"} icon="circle">{p.status === "active" ? "ACTIVE JOB SEARCH" : p.status === "exploring" ? "EXPLORING" : "PAUSED"}{p.cycle ? ` · ${p.cycle.toUpperCase()}` : ""}</Chip>
           </div>
           <p className="text-fg-2 text-[17px]">{[p.headline, p.school].filter(Boolean).join(" · ")}</p>
@@ -40,7 +43,7 @@ export function ProfilePage() {
       </Card>
 
       <div role="tablist" aria-label="Profile sections" className="flex gap-2 overflow-x-auto pb-1 border-b border-line">
-        {([["overview", "Overview & Goals"], ["resume", "Resume & Background"], ["privacy", "Appearance"]] as const).map(([k, l]) => (
+        {([["overview", "Overview & Goals"], ["resume", "Resume & Background"], ["privacy", "Privacy/Appearance"]] as const).map(([k, l]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
             className={cx("h-10 px-4 rounded-lg text-sm font-semibold whitespace-nowrap border mb-2", tab === k ? "bg-ink text-on-ink border-transparent" : "bg-card border-line text-fg-2 hover:bg-card-2")}>{l}</button>
         ))}
@@ -81,8 +84,8 @@ function Overview({ p, save }: { p: Profile; save: (x: Partial<Profile>) => Prom
       <Card className="p-5 md:p-7 flex flex-col gap-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex gap-3 min-w-0">
-            <span className="grid place-items-center w-10 h-10 rounded-lg bg-sunken text-brand shrink-0"><Icon name="flag" /></span>
-            <div><h2 className="font-serif text-[26px] font-semibold leading-tight">Career Goals & Target Roles</h2><p className="text-[13px] text-fg-3">Target roles and wishlist companies feed every AI brief</p></div>
+            <span className="profile-goals-icon grid place-items-center w-10 h-10 rounded-lg bg-sunken text-brand shrink-0"><Icon name="flag" /></span>
+            <div><h2 className="profile-goals-title font-serif text-[26px] font-semibold leading-tight">Career Goals & Target Roles</h2><p className="profile-goals-description text-[13px] text-fg-3">Target roles and wishlist companies feed every AI brief</p></div>
           </div>
           {p.cycle && <Chip tone="peach">{p.cycle}</Chip>}
         </div>
@@ -121,8 +124,8 @@ function Resume({ p, save }: { p: Profile; save: (x: Partial<Profile>) => Promis
     <Card className="p-5 md:p-7 flex flex-col gap-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex gap-3">
-          <span className="grid place-items-center w-10 h-10 rounded-lg bg-sunken text-brand"><Icon name="description" /></span>
-          <div><h2 className="font-serif text-[26px] font-semibold leading-tight">Resume & Extracted Background</h2><p className="text-[13px] text-fg-3">Used to find common ground and write your intros</p></div>
+          <span className="profile-resume-icon grid place-items-center w-10 h-10 rounded-lg bg-sunken text-brand"><Icon name="description" /></span>
+          <div><h2 className="profile-resume-title font-serif text-[26px] font-semibold leading-tight">Resume & Extracted Background</h2><p className="profile-resume-description text-[13px] text-fg-3">Used to find common ground and write your intros</p></div>
         </div>
         {p.skills.length > 0 && <Chip tone="blue" icon="check_circle">Parsed</Chip>}
       </div>
@@ -166,7 +169,7 @@ function Privacy() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2 items-start">
-      <Card className="p-5 md:p-7 flex flex-col gap-4">
+      <Card className="profile-appearance-card p-5 md:p-7 flex flex-col gap-4">
         <h2 className="font-serif text-[26px] font-semibold">Where your data lives</h2>
         <div className="rounded-xl bg-card-2 border border-line p-4 flex gap-3">
           <Icon name={store.mode === "local" ? "smartphone" : "cloud_done"} className="text-brand text-[24px]" />

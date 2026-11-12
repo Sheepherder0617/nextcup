@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useStore } from "../lib/store";
 import { intent, useNav } from "../lib/nav";
 import { Avatar, Button, Card, Chip, Empty, Icon, Input, Label, Segmented, Select, TextArea, Toggle, cx, useToast } from "../components/ui";
-import { RoleChips } from "../components/bits";
 import { aiAvailable } from "../lib/ai";
 import { addDays, parseLocal, timezoneLabel, todayISO, uid } from "../lib/date";
 import { FORMAT_ICON, FORMAT_LABEL, type ChatEvent, type Format } from "../lib/types";
@@ -128,7 +127,7 @@ export function Schedule({ contactId }: { contactId?: string }) {
               <div className="rounded-xl border border-line bg-card-2 p-4 flex items-center gap-4">
                 <Avatar name={c.name} size={48} />
                 <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-1.5"><span className="text-[18px] font-bold mr-1">{c.name}</span><RoleChips roles={c.roleTypes.slice(0, 2)} school={c.school} /></div>
+                  <div className="text-[18px] font-bold">{c.name}</div>
                   <p className="text-[14px] text-fg-2 truncate">{[c.title, c.company].filter(Boolean).join(" at ")}</p>
                 </div>
                 <Button variant="ghost" icon="swap_horiz" aria-label="Change contact" onClick={() => setPicking(true)} />

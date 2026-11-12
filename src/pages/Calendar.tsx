@@ -73,7 +73,7 @@ export function CalendarPage() {
           <EmailReminders />
 
           <div className="calendar-mobile-month">
-            <MiniMonth month={month} setMonth={setMonth} events={store.events} selected={day} onPick={(d) => { setDay(d === day ? null : d); setRange("all"); }} />
+            <PhoneCalendar month={month} setMonth={setMonth} events={store.events} selected={day} onPick={(d) => { setDay(d === day ? null : d); setRange("all"); }} />
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
@@ -251,7 +251,62 @@ function EditCoffeeChatModal({ event, onClose, onSave }: { event: ChatEvent; onC
   );
 }
 
-function MiniMonth({ month, setMonth, events, selected, onPick }: { month: Date; setMonth: (d: Date) => void; events: ChatEvent[]; selected: string | null; onPick: (d: string) => void }) {
+/** Phone: a one-week strip by default; tap "Month" to expand the full month grid. */
+function PhoneCalendar({ month, setMonth, events, selected, onPick }: { month: Date; setMonth: (d: Date) => void; events: ChatEvent[]; selected: string | null; onPick: (d: string) => void }) {
+  const [open, setOpen] = useState(() => { try { return localStorage.getItem("nextcup:cal-open") === "1"; } catch { return false; } });
+  const [anchor, setAnchor] = useState(() => parseLocal(selected ?? todayISO()));
+  const toggle = () => { const v = !open; setOpen(v); try { localStorage.setItem("nextcup:cal-open", v ? "1" : "0"); } catch { /* ignore */ } };
+  const weekStart = addDays(anchor, -anchor.getDay());
+  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  const today = todayISO();
+  const byDay = new Map<string, ChatEvent[]>();
+  events.forEach((e) => { const k = e.start.slice(0, 10); byDay.set(k, [...(byDay.get(k) ?? []), e]); });
+  const shift = (n: number) => { const d = addDays(anchor, n); setAnchor(d); setMonth(new Date(d.getFullYear(), d.getMonth(), 1)); };
+  const pick = (k: string) => { setAnchor(parseLocal(k)); onPick(k); };
+
+  if (open) return (
+    <div className="flex flex-col gap-2">
+      <MiniMonth month={month} setMonth={setMonth} events={events} selected={selected} onPick={pick} compact />
+      <button type="button" onClick={toggle} aria-expanded="true" className="self-center inline-flex items-center gap-1 h-8 px-3.5 rounded-full bg-card border border-line text-[13px] font-semibold text-fg-2">
+        <Icon name="expand_less" className="text-[18px]" />Show week only
+      </button>
+    </div>
+  );
+
+  return (
+    <Card className="px-2.5 pt-2.5 pb-2">
+      <div className="flex items-center justify-between px-1 mb-1.5">
+        <h2 className="font-serif text-[18px] font-semibold">{formatMonth(weekStart)}</h2>
+        <div className="flex items-center gap-0.5">
+          <Button size="sm" variant="ghost" icon="chevron_left" aria-label="Previous week" onClick={() => shift(-7)} />
+          <Button size="sm" variant="ghost" icon="chevron_right" aria-label="Next week" onClick={() => shift(7)} />
+          <button type="button" onClick={toggle} aria-expanded="false" className="ml-1 inline-flex items-center gap-0.5 h-8 px-2.5 rounded-full bg-sunken text-[12px] font-bold text-fg-2">
+            Month<Icon name="expand_more" className="text-[18px]" />
+          </button>
+        </div>
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {days.map((d) => {
+          const k = todayISO(d); const evs = byDay.get(k) ?? []; const sel = selected === k;
+          return (
+            <button key={k} type="button" onClick={() => pick(k)} aria-pressed={sel}
+              aria-label={`${formatShort(d)}${evs.length ? `, ${evs.length} event${evs.length > 1 ? "s" : ""}` : ""}`}
+              className={cx("relative flex flex-col items-center gap-0.5 py-1.5 rounded-xl transition",
+                sel ? "bg-ink text-on-ink" : k === today ? "bg-peach text-on-peach" : "hover:bg-sunken")}>
+              <span className={cx("text-[10px] font-bold uppercase", sel ? "text-on-ink/80" : "text-fg-3")}>{"SMTWTFS"[d.getDay()]}</span>
+              <span className="text-[15px] font-semibold tnum leading-none">{d.getDate()}</span>
+              <span className="h-1.5 flex gap-0.5">
+                {evs.slice(0, 3).map((e) => <span key={e.id} className={cx("w-1 h-1 rounded-full", sel ? "bg-on-ink" : e.kind === "coffee" ? "bg-brand" : "bg-blue")} />)}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+function MiniMonth({ month, setMonth, events, selected, onPick, compact }: { month: Date; setMonth: (d: Date) => void; events: ChatEvent[]; selected: string | null; onPick: (d: string) => void; compact?: boolean }) {
   const startDow = month.getDay();
   const gridStart = addDays(month, -startDow);
   const days = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
@@ -288,7 +343,7 @@ function MiniMonth({ month, setMonth, events, selected, onPick }: { month: Date;
           );
         })}
       </div>
-      {monthEvents.length > 0 && (
+      {!compact && monthEvents.length > 0 && (
         <ul className="mt-4 pt-3 border-t border-line flex flex-col gap-1.5 text-[13px]">
           {monthEvents.slice(0, 5).map((e) => (
             <li key={e.id} className="flex items-center gap-2"><span className={cx("w-2 h-2 rounded-full", e.status === "done" ? "bg-blue" : "bg-brand")} />

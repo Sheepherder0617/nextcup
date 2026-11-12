@@ -139,7 +139,7 @@ function WarmWord() {
     { d: "M50 58 C45 52, 55 46, 50 38 S 47 28, 52 22", w: 3.6, dur: 3.2, delay: 2.4 },
   ];
   return (
-    <span className="relative inline-block">
+    <span className="relative inline-block mb-[0.14em]">
       <svg aria-hidden="true" viewBox="0 0 60 60" className="absolute left-1/2 -translate-x-1/2 bottom-[80%] w-[0.9em] h-[0.9em] overflow-visible">
         <defs>
           <linearGradient id="steam-fade" x1="0" y1="1" x2="0" y2="0">
@@ -158,7 +158,37 @@ function WarmWord() {
         </g>
       </svg>
       <span className="warm-text">warm</span>
+      <CoffeeCup />
     </span>
+  );
+}
+
+/** A small latte under "warm": the word reads like the warmth rising from the cup. */
+function CoffeeCup() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 120 52" className="absolute left-1/2 -translate-x-[52%] top-[93%] w-[0.9em] h-[0.39em] overflow-visible">
+      <defs>
+        <clipPath id="cup-coffee"><ellipse cx="54" cy="9" rx="40" ry="6.5" /></clipPath>
+      </defs>
+      {/* saucer */}
+      <ellipse cx="54" cy="47" rx="52" ry="5" fill="var(--sand)" />
+      <ellipse cx="54" cy="45.5" rx="46" ry="3.5" fill="color-mix(in oklab, var(--sand) 70%, white)" />
+      {/* handle */}
+      <path d="M92 14 C110 12, 112 32, 90 33" fill="none" stroke="var(--brand-2)" strokeWidth="6" strokeLinecap="round" />
+      {/* cup body */}
+      <path d="M13 9 C13 30, 26 44, 54 44 C82 44, 95 30, 95 9 Z" fill="var(--brand-2)" />
+      <path d="M13 9 C13 30, 26 44, 54 44 C68 44, 78 40, 85 33 C70 38, 40 39, 22 22 C17 17, 14 13, 13 9 Z" fill="color-mix(in oklab, var(--brand) 85%, black)" opacity=".35" />
+      {/* rim + coffee */}
+      <ellipse cx="54" cy="9" rx="42" ry="8" fill="color-mix(in oklab, var(--peach) 60%, white)" />
+      <ellipse cx="54" cy="9" rx="38" ry="6" fill="#5a3818" />
+      <g clipPath="url(#cup-coffee)">
+        <ellipse cx="54" cy="9.5" rx="26" ry="4.2" fill="#a8774b" />
+        {/* latte-art heart that slowly swirls */}
+        <g className="cup-swirl">
+          <path d="M54 12.5 C46 8.5, 46 5, 50 5 C52 5, 53.5 6.2, 54 7.5 C54.5 6.2, 56 5, 58 5 C62 5, 62 8.5, 54 12.5 Z" fill="#fcf2eb" />
+        </g>
+      </g>
+    </svg>
   );
 }
 

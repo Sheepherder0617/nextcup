@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 
-export type RouteName = "welcome" | "signup" | "dashboard" | "contacts" | "add-contact" | "contact" | "edit" | "calendar" | "schedule" | "profile";
+export type RouteName = "welcome" | "signup" | "signin" | "dashboard" | "contacts" | "add-contact" | "contact" | "edit" | "calendar" | "schedule" | "profile";
 
 export interface LogTarget { contactId?: string; eventId?: string }
 

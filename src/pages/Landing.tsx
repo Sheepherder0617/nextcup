@@ -210,13 +210,13 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
   }, [act, reduced]);
 
   return (
-    <section className="gutter relative overflow-hidden">
+    <section className="gutter relative overflow-hidden dot-grid">
       <div aria-hidden="true" className="absolute inset-0 pointer-events-none"
         style={{ background: "radial-gradient(45% 60% at 80% 40%, color-mix(in oklab, var(--peach) 55%, transparent), transparent 70%), radial-gradient(35% 50% at 10% 80%, color-mix(in oklab, var(--blue-soft) 55%, transparent), transparent 70%)" }} />
-      <div className="relative mx-auto max-w-[1180px] pt-10 pb-12 md:pt-16 md:pb-20 grid gap-8 lg:gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] items-center">
+      <div className="relative mx-auto max-w-[1180px] pt-8 pb-12 md:pt-10 md:pb-16 lg:pt-12 grid gap-8 lg:gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] items-center">
         <div className="flex flex-col gap-5 text-center lg:text-left items-center lg:items-start">
           <p className="label-caps text-brand">The coffee chat tracker for students &amp; early-career professionals</p>
-          <h1 className="font-serif font-medium text-[38px] leading-[1.06] md:text-[56px] lg:text-[60px] tracking-[-0.02em] max-w-[16ch]">
+          <h1 className="font-serif font-medium text-[40px] leading-[1.04] md:text-[60px] lg:text-[66px] xl:text-[72px] tracking-[-0.02em] max-w-[15ch]">
             Keep your connections <WarmWord /> with <BrandWord />
           </h1>
           <p className="text-fg-2 text-[16px] md:text-[18px] max-w-[48ch]">
@@ -229,6 +229,11 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
             <a href="#how" onClick={(e) => { e.preventDefault(); document.getElementById("how")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" }); }}
               className="text-[15px] font-semibold text-fg-2 hover:text-fg rounded-md">See how it works ↓</a>
           </div>
+          <ul className="flex flex-wrap justify-center lg:justify-start gap-x-5 gap-y-2 text-[13px] font-medium text-fg-3 mt-1">
+            {[["lock", "Private by default"], ["devices", "Laptop and phone"], ["auto_awesome", "AI drafts in your voice"]].map(([ic, t]) => (
+              <li key={t} className="flex items-center gap-1.5"><Icon name={ic} className="text-[16px] text-brand-2" />{t}</li>
+            ))}
+          </ul>
         </div>
 
         <div className="relative w-full max-w-[640px] mx-auto">
@@ -256,6 +261,7 @@ function Stage({ act }: { act: number }) {
   return (
     <div className="relative w-full aspect-[3/2.1]" role="img"
       aria-label="Two young professionals run into each other at a networking event. Both wonder when they last talked and what they discussed. She checks NextCup on her phone and sees their whole history.">
+      <div aria-hidden="true" className="absolute inset-x-[4%] top-[8%] bottom-0 rounded-t-[999px] rounded-b-[32px] bg-[color-mix(in_oklab,var(--peach)_55%,var(--card))] border border-line" />
       <img src={IMG("hero-1")} alt="" width={1400} height={933} fetchPriority="high"
         className={cx("absolute inset-x-0 bottom-0 w-full transition-opacity duration-700", act === 0 ? "opacity-100" : "opacity-0")} />
       <img src={IMG("hero-2")} alt="" width={1400} height={933}

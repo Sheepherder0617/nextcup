@@ -5,3 +5,6 @@ dist
 .vercel
 typestub
 tsconfig.check.json
+scripts/demo/site
+scripts/demo/vid
+scripts/demo/shots

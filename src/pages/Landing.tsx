@@ -30,9 +30,9 @@ const STEPS = [
 // `at` is where each chapter starts in public/landing/demo.mp4, in seconds.
 const TOUR = [
   { at: 0, icon: "timeline", title: "Every conversation, remembered", text: "Each contact keeps a timeline of chats, notes and messages. Glance at it before you say hi." },
-  { at: 6.9, icon: "auto_awesome", title: "Follow-ups written for you", text: "AI picks a good moment to reach out and drafts messages from what you discussed." },
-  { at: 16.5, icon: "calendar_month", title: "One calendar for every touchpoint", text: "Coffee chats, thank-you notes and check-ins in one timeline, with reminders." },
-  { at: 22, icon: "edit_note", title: "Messy notes, clean debrief", text: "Jot rough notes after a chat. AI turns them into clear takeaways." },
+  { at: 7.1, icon: "auto_awesome", title: "Follow-ups written for you", text: "AI picks a good moment to reach out and drafts messages from what you discussed." },
+  { at: 19.2, icon: "calendar_month", title: "One calendar for every touchpoint", text: "Coffee chats, thank-you notes and check-ins in one timeline, with reminders." },
+  { at: 23.4, icon: "edit_note", title: "Messy notes, clean debrief", text: "Jot rough notes after a chat. AI turns them into clear takeaways." },
 ];
 
 const PRIVACY = [

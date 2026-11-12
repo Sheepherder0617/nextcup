@@ -70,13 +70,7 @@ export function CalendarPage() {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] items-start">
         <div className="flex flex-col gap-4 min-w-0">
-          <Card className="p-4 flex items-start gap-3 ai-glow">
-            <span className="grid place-items-center w-10 h-10 rounded-xl bg-card text-brand border border-line shrink-0"><Icon name="notifications_active" /></span>
-            <div className="flex-1">
-              <p className="font-semibold flex items-center gap-2">Calendar reminders <Chip tone="blue">Live</Chip></p>
-              <p className="text-[14px] text-fg-2">Use <b>.ics</b> on any chat to add it to your phone calendar with a reminder the day before and 30 minutes before. Open the AI brief the evening before to prep.</p>
-            </div>
-          </Card>
+          <EmailReminders />
 
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
             <div className="w-full sm:w-52">
@@ -298,6 +292,34 @@ function MiniMonth({ month, setMonth, events, selected, onPick }: { month: Date;
           ))}
         </ul>
       )}
+    </Card>
+  );
+}
+
+/** Email reminder setting. Saved on the profile; sending is not built yet, so this only stores the choice. */
+function EmailReminders() {
+  const store = useStore();
+  const p = store.profile;
+  const on = p?.emailReminders ?? true;
+  function set(v: boolean) { if (p) store.saveProfile({ ...p, emailReminders: v }); }
+  return (
+    <Card className="p-4 flex items-start gap-3 ai-glow">
+      <span className={cx("grid place-items-center w-10 h-10 rounded-xl border shrink-0 transition", on ? "bg-peach text-on-peach border-transparent" : "bg-card text-fg-3 border-line")}>
+        <Icon name={on ? "notifications_active" : "notifications_off"} />
+      </span>
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold flex items-center gap-2">Email reminders
+          <span aria-hidden="true" className={cx("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-bold transition",
+            on ? "bg-blue-soft text-on-blue-soft" : "bg-sunken text-fg-3 border border-line")}>
+            <span className={cx("w-1.5 h-1.5 rounded-full", on ? "bg-blue" : "bg-fg-3")} />{on ? "On" : "Off"}
+          </span>
+        </p>
+        <p className="text-[14px] text-fg-2">Get an email the day before each coffee chat with your AI prep brief and talking points.</p>
+      </div>
+      <button type="button" role="switch" aria-checked={on} aria-label="Email reminders" onClick={() => set(!on)}
+        className={cx("relative shrink-0 mt-1 w-12 h-7 rounded-full transition", on ? "bg-ink" : "bg-line-2")}>
+        <span className={cx("absolute top-1 left-1 w-5 h-5 rounded-full bg-card shadow-soft transition-transform", on && "translate-x-5")} />
+      </button>
     </Card>
   );
 }

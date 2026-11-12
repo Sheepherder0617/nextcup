@@ -92,6 +92,7 @@ export interface Profile {
   tone: Tone;
   durationMin: number;
   followUpWeeks: number;
+  emailReminders?: boolean; // preview setting: shown in Calendar, no emails are sent yet
   createdAt: string;
 }
 

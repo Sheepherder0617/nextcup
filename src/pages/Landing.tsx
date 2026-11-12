@@ -200,10 +200,12 @@ function Demo() {
   }, [reduced, phone]);
 
   // Browsers only autoplay muted video, so sound is opt-in.
+  // MP4 (H.264/AAC) is listed first: iPhone Safari can play the WebM picture but not always its Opus audio.
   function toggleSound() {
     const v = video.current;
     if (!v) return;
     v.muted = sound;
+    if (!sound) v.volume = 1;
     setSound(!sound);
     if (!sound) v.play().catch(() => {});
   }
@@ -229,8 +231,8 @@ function Demo() {
               <div aria-hidden="true" className="absolute left-1/2 -translate-x-1/2 top-[14px] z-10 w-[30%] h-[19px] rounded-full bg-ink" />
               <video key="phone" ref={video} poster={IMG("demo-phone-poster")} muted playsInline loop preload="metadata"
                 controls={reduced} width={780} height={1688} className="block w-full h-auto rounded-[32px] bg-card" aria-label={label}>
-                <source src="/landing/demo-phone.webm" type="video/webm" />
                 <source src="/landing/demo-phone.mp4" type="video/mp4" />
+                <source src="/landing/demo-phone.webm" type="video/webm" />
               </video>
             </div>
             {soundBtn("h-8 px-3.5 text-[13px] shadow-soft")}
@@ -242,8 +244,8 @@ function Demo() {
             </BrowserBar>
             <video key="web" ref={video} poster={IMG("demo-poster")} muted playsInline loop preload="metadata"
               controls={reduced} width={1280} height={800} className="block w-full h-auto bg-card" aria-label={label}>
-              <source src="/landing/demo.webm" type="video/webm" />
               <source src="/landing/demo.mp4" type="video/mp4" />
+              <source src="/landing/demo.webm" type="video/webm" />
             </video>
           </figure>
         )}

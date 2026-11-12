@@ -27,7 +27,7 @@ const STEPS = [
 ];
 
 const FEATURES = [
-  { icon: "timeline", title: "Full relationship timeline", text: "Every meeting, note and message with each person, in one place. Glance at it before you say hi." },
+  { icon: "timeline", title: "Full history with every contact", text: "Every meeting, note and message with each person, in one place. Glance at it before you say hi." },
   { icon: "notifications_active", title: "Follow-ups that never slip", text: "Thank-you notes, check-ins and gentle nudges, timed so reaching out feels natural." },
   { icon: "auto_awesome", title: "Know what to say", text: "AI suggests talking points and drafts messages from your own notes, in your voice." },
   { icon: "assignment", title: "Prep before every chat", text: "A one-page brief with smart questions, common ground and an agenda." },
@@ -65,7 +65,7 @@ export function Landing() {
           <img src={IMG("problem")} alt="A student at a desk looking at their phone, trying to remember someone, surrounded by faded notes" loading="lazy"
             className="w-full max-w-[300px] md:max-w-[440px] mx-auto" width={900} height={900} />
           <div className="flex flex-col gap-4">
-            <SectionLabel>Why relationships fade</SectionLabel>
+            <SectionLabel>Why connections fade</SectionLabel>
             <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em]">You meet great people. Then life happens.</h2>
             <p className="text-fg-2 text-[16px] md:text-[17px] max-w-[56ch]">
               A coffee chat goes well. You swap LinkedIns, promise to keep in touch, and mean it. Six weeks later you run into them at an event, and all you remember is their first name. The advice they gave, the article they recommended, the thing you said you’d send: gone.
@@ -106,7 +106,7 @@ export function Landing() {
         <div className="mx-auto max-w-[1180px] py-14 md:py-20">
           <div className="flex flex-col items-center text-center gap-3 mb-10 md:mb-12">
             <SectionLabel>What you get</SectionLabel>
-            <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[22ch]">Your memory for every professional relationship.</h2>
+            <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[22ch]">Your memory for every professional connection.</h2>
           </div>
           <div className="grid gap-4 md:gap-6 sm:grid-cols-2">
             {FEATURES.map((f) => (
@@ -127,7 +127,7 @@ export function Landing() {
         <div className="mx-auto max-w-[1180px] py-14 md:py-20">
           <div className="flex flex-col items-center text-center gap-3 mb-8 md:mb-12">
             <SectionLabel>Your data, your network</SectionLabel>
-            <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em]">Your relationships belong to you.</h2>
+            <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em]">Your network belongs to you.</h2>
           </div>
           <div className="grid gap-4 md:gap-6 md:grid-cols-3">
             {PRIVACY.map((p) => (
@@ -197,9 +197,9 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
         style={{ background: "radial-gradient(45% 60% at 80% 40%, color-mix(in oklab, var(--peach) 55%, transparent), transparent 70%), radial-gradient(35% 50% at 10% 80%, color-mix(in oklab, var(--blue-soft) 55%, transparent), transparent 70%)" }} />
       <div className="relative mx-auto max-w-[1180px] pt-10 pb-12 md:pt-16 md:pb-20 grid gap-8 lg:gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] items-center">
         <div className="flex flex-col gap-5 text-center lg:text-left items-center lg:items-start">
-          <p className="label-caps text-brand">The relationship tracker for students &amp; early-career professionals</p>
+          <p className="label-caps text-brand">The coffee chat tracker for students &amp; early-career professionals</p>
           <h1 className="font-serif font-medium text-[38px] leading-[1.06] md:text-[56px] lg:text-[60px] tracking-[-0.02em] max-w-[16ch]">
-            Every coffee chat is the start of a <em className="text-brand">relationship.</em>
+            Turn every coffee chat into a <em className="text-brand">network that lasts.</em>
           </h1>
           <p className="text-fg-2 text-[16px] md:text-[18px] max-w-[48ch]">
             NextCup remembers what you talked about, reminds you when to reach out, and suggests what to say, so the people you meet stay in your corner for years, not days.
@@ -243,7 +243,7 @@ function Stage({ act }: { act: number }) {
       <img src={IMG("hero-2")} alt="" width={1400} height={933}
         className={cx("absolute inset-x-0 bottom-0 w-full transition-opacity duration-700", act === 0 ? "opacity-0" : "opacity-100")} />
       <Thought show={act === 0} className="left-[1%] top-[17%] md:top-[24%] w-[47%] md:w-[44%]" tail="left-[48%]" delay={250}>What did we chat about again?</Thought>
-      <Thought show={act === 0} className="right-[0%] top-[6%] md:top-[14%] w-[45%] md:w-[42%]" tail="left-[38%]" delay={900}>When did I last talk to her…?</Thought>
+      <Thought show={act === 0} className="right-[0%] top-[6%] md:top-[14%] w-[45%] md:w-[42%]" tail="left-[38%]" delay={900}>When did we last talk…?</Thought>
     </div>
   );
 }

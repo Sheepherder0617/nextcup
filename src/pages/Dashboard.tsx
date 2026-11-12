@@ -35,12 +35,6 @@ export function Dashboard() {
       {/* Phone: one line greeting, then "what should I do next?" */}
       <div className="md:hidden flex flex-col gap-4">
         <h1 className="font-serif text-[26px] leading-tight font-semibold tracking-[-0.015em] truncate">{greeting(now)}, {first}</h1>
-        <UpNext items={upNext} hasContacts={nContacts > 0}
-          onAct={(it) => it.type === "debrief" ? openLog({ eventId: it.e.id }) : it.type === "chat" ? openPrep(it.c.id, it.e.id) : setDraftId(it.e.id)}
-          onSeeAll={() => go("calendar")} onEmpty={() => go(nContacts ? "schedule" : "add-contact")} />
-        <QuickActions onAdd={() => go("add-contact")} onSchedule={() => go("schedule")} onLog={() => openLog()} />
-        <Reconnect contacts={store.contacts} events={store.events} busyIds={new Set(upNext.map((it) => it.c.id))}
-          onOpen={(id) => go("contact", id)} onAll={() => go("contacts")} />
         <Card className="grid grid-cols-3 divide-x divide-line py-2.5">
           {[[nContacts, nContacts === 1 ? "Contact" : "Contacts"], [nLogged, "Logged"], [chats.length, "Upcoming"]].map(([n, l]) => (
             <div key={l} className="text-center min-w-0 px-1">
@@ -49,6 +43,19 @@ export function Dashboard() {
             </div>
           ))}
         </Card>
+        <UpNext items={upNext} hasContacts={nContacts > 0}
+          onAct={(it) => it.type === "debrief" ? openLog({ eventId: it.e.id }) : it.type === "chat" ? openPrep(it.c.id, it.e.id) : setDraftId(it.e.id)}
+          onSeeAll={() => go("calendar")} onEmpty={() => go(nContacts ? "schedule" : "add-contact")} />
+        <QuickActions onAdd={() => go("add-contact")} onSchedule={() => go("schedule")} onLog={() => openLog()} />
+        <Reconnect contacts={store.contacts} events={store.events} busyIds={new Set(upNext.map((it) => it.c.id))}
+          onOpen={(id) => go("contact", id)} onAll={() => go("contacts")} />
+        <GettingStarted steps={[
+          { done: nContacts >= 3, label: "Add 3 people you want to stay in touch with", note: `${Math.min(nContacts, 3)}/3`, on: () => go("add-contact") },
+          { done: store.events.some((e) => e.kind === "coffee"), label: "Schedule your first coffee chat", on: () => go("schedule") },
+          { done: store.notes.length > 0, label: "Log a chat and let AI tidy your notes", on: () => openLog() },
+          { done: (store.profile?.targetRoles.length ?? 0) > 0, label: "Add your target roles so AI briefs fit you", on: () => go("profile") },
+        ]} />
+        <TipCard now={now} />
       </div>
 
       {/* Tablet & desktop */}
@@ -184,7 +191,7 @@ function UpNext({ items, hasContacts, onAct, onSeeAll, onEmpty }:
   if (!items.length) {
     return (
       <Card className="px-4 py-3 flex items-center gap-3">
-        <p className="flex-1 min-w-0 text-[14px] text-fg-2">{hasContacts ? "You’re all caught up. Who’s next?" : "Add someone you’d like to stay in touch with."}</p>
+        <p className="flex-1 min-w-0 text-[14px] text-fg-2">{hasContacts ? "Nothing coming up. Who’s next?" : "Add someone you’d like to stay in touch with."}</p>
         <Button size="sm" variant="primary" icon={hasContacts ? "event_available" : "person_add"} onClick={onEmpty}>{hasContacts ? "Schedule a chat" : "Add contact"}</Button>
       </Card>
     );
@@ -240,14 +247,13 @@ function Reconnect({ contacts, events, busyIds, onOpen, onAll }:
   const rows = contacts
     .filter((c) => !busyIds.has(c.id))
     .map((c) => { const last = lastContactOf(c, events); return { c, last, gap: last ? (now - new Date(last).getTime()) / DAY : Infinity }; })
-    .filter((r) => r.gap >= 21)
     .sort((a, b) => b.gap - a.gap)
     .slice(0, 3);
   if (!rows.length) return null;
   return (
     <section aria-labelledby="reconnect" className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between">
-        <h2 id="reconnect" className="label-caps text-brand">Time to reconnect</h2>
+        <h2 id="reconnect" className="label-caps text-brand">Stay in touch</h2>
         <button type="button" onClick={onAll} className="text-[13px] font-semibold text-fg-2 hover:text-fg inline-flex items-center gap-0.5">All contacts<Icon name="chevron_right" className="text-[18px]" /></button>
       </div>
       <Card className="divide-y divide-line overflow-hidden">
@@ -263,6 +269,57 @@ function Reconnect({ contacts, events, busyIds, onOpen, onAll }:
         ))}
       </Card>
     </section>
+  );
+}
+
+/** New-account checklist; disappears once every step is done. */
+function GettingStarted({ steps }: { steps: { done: boolean; label: string; note?: string; on: () => void }[] }) {
+  const done = steps.filter((s) => s.done).length;
+  if (done === steps.length) return null;
+  return (
+    <section aria-labelledby="getting-started" className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between">
+        <h2 id="getting-started" className="label-caps text-brand">Get set up</h2>
+        <span className="text-[12px] font-semibold text-fg-3 tnum">{done}/{steps.length} done</span>
+      </div>
+      <Card className="overflow-hidden">
+        <div className="h-1.5 bg-sunken"><div className="h-full bg-brand-2 transition-[width] duration-500" style={{ width: `${(done / steps.length) * 100}%` }} /></div>
+        <ul className="divide-y divide-line">
+          {steps.map((s) => (
+            <li key={s.label}>
+              <button type="button" onClick={s.on} disabled={s.done} className="w-full text-left flex items-center gap-3 px-3.5 py-3 active:bg-card-2 disabled:active:bg-transparent">
+                <span className={cx("grid place-items-center w-6 h-6 rounded-full shrink-0 border", s.done ? "bg-blue border-blue text-card" : "border-line-2 text-transparent")}>
+                  <Icon name="check" className="text-[16px]" />
+                </span>
+                <span className={cx("flex-1 min-w-0 text-[14px]", s.done ? "text-fg-3 line-through" : "font-semibold")}>{s.label}</span>
+                {!s.done && <span className="shrink-0 inline-flex items-center text-fg-3">{s.note && <span className="text-[12px] font-semibold mr-1 tnum">{s.note}</span>}<Icon name="chevron_right" className="text-[20px]" /></span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </section>
+  );
+}
+
+const TIPS = [
+  "Send a thank-you within 24 hours, and mention one specific thing they said.",
+  "Before a coffee chat, prepare one question you can't answer with a Google search.",
+  "A follow-up 4–6 weeks later with an update on their advice is the easiest way to stay memorable.",
+  "End every chat by asking: “Is there anyone else you think I should talk to?”",
+  "Share something useful (an article, an event) instead of only asking for help.",
+  "Keep it short: a 15-minute chat that ends on time is often remembered better than a long one.",
+];
+function TipCard({ now }: { now: Date }) {
+  const tip = TIPS[Math.floor(now.getTime() / 86400000) % TIPS.length];
+  return (
+    <Card className="ai-glow px-4 py-3.5 flex gap-3">
+      <span className="grid place-items-center w-9 h-9 rounded-xl bg-card border border-line text-brand shrink-0"><Icon name="lightbulb" className="text-[20px]" /></span>
+      <div className="min-w-0">
+        <p className="label-caps text-brand">Networking tip</p>
+        <p className="text-[14px] text-fg-2 mt-0.5">{tip}</p>
+      </div>
+    </Card>
   );
 }
 

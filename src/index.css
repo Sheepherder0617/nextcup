@@ -112,6 +112,8 @@ h1, h2, h3 { text-wrap: balance; }
 .ms.fill { font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24; }
 :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
 input, textarea, select { font: inherit; color: inherit; }
+/* Phones: iOS zooms into any field under 16px and stays zoomed, so keep form text at 16px there */
+@media (max-width: 767px) { input, textarea, select { font-size: max(16px, 1em) !important; } }
 ::placeholder { color: var(--fg-3); opacity: 0.85; }
 .ai-glow {
   background:

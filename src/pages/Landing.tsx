@@ -318,9 +318,9 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
         style={{ background: "radial-gradient(45% 60% at 80% 40%, color-mix(in oklab, var(--peach) 55%, transparent), transparent 70%), radial-gradient(35% 50% at 10% 80%, color-mix(in oklab, var(--blue-soft) 55%, transparent), transparent 70%)" }} />
       <div className="relative mx-auto max-w-[1180px] pt-8 pb-12 md:pt-10 md:pb-16 lg:pt-12 grid gap-8 lg:gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-center">
         <div className="flex flex-col gap-5 text-center lg:text-left items-center lg:items-start">
-          <p className="font-sans font-semibold text-[16px] md:text-[20px] lg:text-[22px] leading-snug tracking-[-0.005em]">
-            <span className="block sm:inline font-normal text-fg-3">Not a coffee chat tracker.</span>{" "}
-            <span className="inline-block mt-1 sm:mt-0 font-bold text-brand">A relationship keeper.</span>
+          <p className="font-sans font-semibold text-[clamp(13px,3.9vw,16px)] md:text-[20px] lg:text-[22px] leading-snug tracking-[-0.005em] whitespace-nowrap">
+            <span className="font-normal text-fg-3">Not a coffee chat tracker.</span>{" "}
+            <span className="font-bold text-brand">A relationship keeper.</span>
           </p>
           {/* Fixed line breaks keep "connections warm" together so the steam never overlaps the line above. */}
           <h1 className="font-serif font-medium text-[clamp(30px,9.2vw,40px)] leading-[1.06] md:text-[58px] lg:text-[50px] xl:text-[60px] tracking-[-0.02em] whitespace-nowrap">
@@ -329,18 +329,13 @@ function Hero({ onStart, signedIn }: { onStart: () => void; signedIn: boolean })
           <p className="text-fg-2 text-[16px] md:text-[18px] max-w-[48ch]">
             NextCup remembers what you talked about, reminds you when to reach out, and suggests what to say, so connections last for years.
           </p>
-          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-5 mt-1">
-            <Button variant="primary" size="lg" iconRight="arrow_forward" onClick={onStart} className="rounded-full px-7">
+          <div className="flex flex-row flex-wrap justify-center lg:justify-start items-center gap-x-4 gap-y-2 sm:gap-5 mt-1">
+            <Button variant="primary" size="lg" iconRight="arrow_forward" onClick={onStart} className="rounded-full px-5 sm:px-7">
               {signedIn ? "Open your workspace" : "Start for free"}
             </Button>
             <a href="#how" onClick={(e) => { e.preventDefault(); document.getElementById("demo")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" }); }}
               className="text-[15px] font-semibold text-fg-2 hover:text-fg rounded-md">See how it works ↓</a>
           </div>
-          <ul className="flex flex-wrap justify-center lg:justify-start gap-x-5 gap-y-2 text-[13px] font-medium text-fg-3 mt-1">
-            {[["lock", "Private by default"], ["devices", "Laptop and phone"], ["auto_awesome", "AI drafts in your voice"]].map(([ic, t]) => (
-              <li key={t} className="flex items-center gap-1.5"><Icon name={ic} className="text-[16px] text-brand-2" />{t}</li>
-            ))}
-          </ul>
         </div>
 
         <div className="relative w-full max-w-[640px] mx-auto">

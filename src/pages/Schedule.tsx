@@ -248,10 +248,10 @@ export function Schedule({ contactId }: { contactId?: string }) {
 
       <div className="sticky z-30 -mx-4 md:mx-0 bottom-[calc(72px+env(safe-area-inset-bottom,0px))] md:bottom-4 gutter md:px-5 py-3 bg-header/95 backdrop-blur border-y md:border border-line md:rounded-2xl shadow-lift flex flex-wrap items-center justify-between gap-3">
         <span className="hidden sm:inline-flex items-center gap-2 text-[13px] text-fg-3"><Icon name="verified_user" className="text-[18px]" />Private to you · reminders via your own calendar</span>
-        <div className="flex gap-2 ml-auto">
+        <div className="flex gap-2 ml-auto w-full sm:w-auto">
           <Button variant="secondary" onClick={() => go("calendar")}>Discard</Button>
-          <Button variant="primary" icon="event_available" onClick={submit} disabled={busy || !c || !title.trim() || (eventType === "followup" && !followUpDetails.trim())}>
-            {aiOk && prep && eventType === "coffee" ? "Schedule Event & Activate AI Prep" : "Schedule Event"}
+          <Button variant="primary" icon="event_available" onClick={submit} className="flex-1 sm:flex-none" disabled={busy || !c || !title.trim() || (eventType === "followup" && !followUpDetails.trim())}>
+            {aiOk && prep && eventType === "coffee" ? <><span className="sm:hidden">Schedule + AI Prep</span><span className="hidden sm:inline">Schedule Event & Activate AI Prep</span></> : "Schedule Event"}
           </Button>
         </div>
       </div>

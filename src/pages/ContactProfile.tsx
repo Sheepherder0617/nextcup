@@ -32,17 +32,17 @@ export function ContactProfile({ id }: { id: string }) {
   return (
     <div className="flex flex-col gap-4 md:gap-5 rise">
       <button type="button" onClick={() => go("contacts")} className="self-start inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-card border border-line shadow-soft text-sm font-semibold hover:bg-card-2">
-        <Icon name="arrow_back" className="text-[18px]" />Back to Contact Directory
+        <Icon name="arrow_back" className="text-[18px]" /><span className="md:hidden">Contacts</span><span className="hidden md:inline">Back to Contact Directory</span>
       </button>
 
       <Card className="p-4 md:p-5 flex flex-col gap-5">
         <div className="flex flex-col lg:flex-row gap-5 lg:items-start">
           <div className="flex gap-4 md:gap-5 flex-1 min-w-0">
-            <Avatar name={c.name} size={64} />
+            <span className="contact-profile-avatar"><Avatar name={c.name} size={64} /></span>
             <div className="min-w-0 flex flex-col gap-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-serif text-[28px] md:text-[34px] leading-none font-semibold tracking-[-0.015em]">{c.name}</h1>
-                <button type="button" onClick={() => go("edit", c.id)} className="inline-flex items-center gap-1 rounded-full bg-sunken px-2.5 py-1 text-[12px] font-bold text-fg-2 hover:bg-card-2"><Icon name="edit" className="text-[14px]" />Edit Details</button>
+                <h1 className="contact-profile-name font-serif text-[28px] md:text-[34px] leading-none font-semibold tracking-[-0.015em]">{c.name}</h1>
+                <button type="button" onClick={() => go("edit", c.id)} className="contact-edit-desktop inline-flex items-center gap-1 rounded-full bg-sunken px-2.5 py-1 text-[12px] font-bold text-fg-2 hover:bg-card-2"><Icon name="edit" className="text-[14px]" />Edit Details</button>
               </div>
               {(c.title || c.company) && <p className="text-[18px] md:text-[20px] font-semibold text-fg-2">{c.title}{c.title && c.company ? " @ " : ""}{c.company}</p>}
               <div className="contact-profile-met-line"><MetLine c={c} /></div>
@@ -80,10 +80,10 @@ export function ContactProfile({ id }: { id: string }) {
       </Card>
 
       <div role="tablist" aria-label="Contact sections" className="self-start inline-flex rounded-2xl bg-card-2 border border-line p-1.5 gap-1">
-        {([["overview", "History & AI Suite", "auto_awesome"], ["prep", "Meeting Prep & Research", "menu_book"]] as const).map(([k, l, ic]) => (
+        {([["overview", "History & AI Suite", "History & AI", "auto_awesome"], ["prep", "Meeting Prep & Research", "Meeting Prep", "menu_book"]] as const).map(([k, l, short, ic]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
             className={cx("inline-flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-semibold transition", tab === k ? "bg-card shadow-soft text-fg" : "text-fg-2 hover:text-fg")}>
-            <Icon name={ic} className="text-[18px]" />{l}
+            <Icon name={ic} className="text-[18px]" /><span className="md:hidden whitespace-nowrap">{short}</span><span className="hidden md:inline">{l}</span>
           </button>
         ))}
       </div>
@@ -109,14 +109,15 @@ export function ContactProfile({ id }: { id: string }) {
 
 function ToolCard({ active, onClick, icon, tag, title, text }: { active: boolean; onClick: () => void; icon: string; tag: string; title: string; text: string }) {
   return (
-    <button type="button" aria-pressed={active} onClick={onClick}
+    <button type="button" aria-label={title} aria-pressed={active} onClick={onClick}
       className={cx("text-left rounded-2xl px-4 py-3 border-2 transition flex flex-col gap-1", active ? "bg-card border-ink shadow-lift" : "bg-card-2 border-transparent hover:bg-card")}>
-      <span className="flex items-center gap-2.5">
-        <span className="grid place-items-center w-8 h-8 rounded-lg bg-peach text-on-peach shrink-0"><Icon name={icon} className="text-[20px]" /></span>
-        <span className="text-[16px] font-bold flex-1 min-w-0">{title}</span>
-        <Chip tone={active ? "blue" : "neutral"}>{active ? "Active Tool" : tag}</Chip>
+      <span className="contact-tool-card-heading flex items-center gap-2.5 w-full">
+        <span className="contact-tool-card-icon grid place-items-center w-8 h-8 rounded-lg bg-peach text-on-peach shrink-0"><Icon name={icon} className="text-[20px]" /></span>
+        <span className="contact-tool-card-title-desktop text-[16px] font-bold flex-1 min-w-0">{title}</span>
+        <Chip className="contact-tool-card-tag" tone={active ? "blue" : "neutral"}>{active ? "Active Tool" : tag}</Chip>
       </span>
-      <span className="text-[13px] text-fg-2">{text}</span>
+      <span className="contact-tool-card-title hidden">{title}</span>
+      <span className="contact-tool-card-description text-[13px] text-fg-2">{text}</span>
     </button>
   );
 }

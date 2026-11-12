@@ -20,11 +20,15 @@ export function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-4 md:gap-5 rise">
-      <Card className="p-4 md:p-5 flex flex-col md:flex-row gap-5 md:items-center">
-        <Avatar name={p.name} src={store.viewer.avatarUrl} size={68} />
+      <Card className="p-4 md:p-5 flex flex-col md:flex-row gap-3 md:gap-5 md:items-center">
+        {/* Phone: avatar and name share one row */}
+        <div className="flex items-center gap-3 md:contents">
+          <Avatar name={p.name} src={store.viewer.avatarUrl} size={56} />
+          <h1 className="md:hidden font-serif text-[26px] leading-tight font-semibold min-w-0">{p.name}</h1>
+        </div>
         <div className="flex-1 min-w-0 flex flex-col gap-1.5">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="font-serif text-[28px] md:text-[34px] leading-none font-semibold">{p.name}</h1>
+            <h1 className="hidden md:block font-serif text-[28px] md:text-[34px] leading-none font-semibold">{p.name}</h1>
             <Chip tone={p.status === "active" ? "blue" : "neutral"} icon="circle">{p.status === "active" ? "ACTIVE JOB SEARCH" : p.status === "exploring" ? "EXPLORING" : "PAUSED"}{p.cycle ? ` · ${p.cycle.toUpperCase()}` : ""}</Chip>
           </div>
           <p className="text-fg-2 text-[15px]">{[p.headline, p.school].filter(Boolean).join(" · ")}</p>
@@ -34,8 +38,8 @@ export function ProfilePage() {
             <span className="inline-flex items-center gap-1.5"><Icon name="schedule" className="text-[17px]" />{timezoneLabel()}</span>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 self-start md:self-center">
-          <Button variant="primary" icon="edit" onClick={() => setEditing(true)}>Edit Profile Details</Button>
+        <div className="flex flex-wrap gap-2 self-stretch md:self-center [&>button]:flex-1 md:[&>button]:flex-none">
+          <Button variant="primary" icon="edit" onClick={() => setEditing(true)}><span className="md:hidden">Edit Profile</span><span className="hidden md:inline">Edit Profile Details</span></Button>
           {store.auth.enabled && <Button variant="secondary" icon="logout" onClick={async () => { await store.auth.signOut(); go("welcome"); }}>Sign out</Button>}
         </div>
       </Card>

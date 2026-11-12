@@ -82,7 +82,7 @@ export function Label({ htmlFor, children, hint }: { htmlFor?: string; children:
   );
 }
 
-const fieldBase = "w-full rounded-lg bg-sunken border border-transparent px-3 py-2 text-[15px] outline-none transition focus:border-brand-2 focus:bg-card focus:ring-4 focus:ring-[color-mix(in_oklab,var(--brand-2)_18%,transparent)]";
+const fieldBase = "w-full rounded-lg bg-sunken border border-transparent px-3 py-2 text-[16px] md:text-[15px] outline-none transition focus:border-brand-2 focus:bg-card focus:ring-4 focus:ring-[color-mix(in_oklab,var(--brand-2)_18%,transparent)]";
 export function Input({ icon, className, ...rest }: InputHTMLAttributes<HTMLInputElement> & { icon?: string }) {
   return (
     <div className="relative">

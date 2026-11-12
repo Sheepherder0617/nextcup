@@ -3,8 +3,8 @@ import { useStore } from "../lib/store";
 import { useNav } from "../lib/nav";
 import { Avatar, Button, Card, Chip, Icon, cx } from "../components/ui";
 import { DraftModal } from "../components/DraftModal";
-import { dueTasks, inThisWeek, isOverdue, needsDebrief, upcomingChats } from "../lib/derive";
-import { formatTime, greeting, parseLocal, relativeDay, timeRange } from "../lib/date";
+import { dueTasks, inThisWeek, isOverdue, lastContactOf, needsDebrief, upcomingChats } from "../lib/derive";
+import { formatTime, fromNow, greeting, parseLocal, relativeDay, timeRange } from "../lib/date";
 import { FORMAT_LABEL, type ChatEvent, type Contact } from "../lib/types";
 import { eventToIcs, saveFile } from "../lib/files";
 
@@ -38,6 +38,9 @@ export function Dashboard() {
         <UpNext items={upNext} hasContacts={nContacts > 0}
           onAct={(it) => it.type === "debrief" ? openLog({ eventId: it.e.id }) : it.type === "chat" ? openPrep(it.c.id, it.e.id) : setDraftId(it.e.id)}
           onSeeAll={() => go("calendar")} onEmpty={() => go(nContacts ? "schedule" : "add-contact")} />
+        <QuickActions onAdd={() => go("add-contact")} onSchedule={() => go("schedule")} onLog={() => openLog()} />
+        <Reconnect contacts={store.contacts} events={store.events} busyIds={new Set(upNext.map((it) => it.c.id))}
+          onOpen={(id) => go("contact", id)} onAll={() => go("contacts")} />
         <Card className="grid grid-cols-3 divide-x divide-line py-2.5">
           {[[nContacts, nContacts === 1 ? "Contact" : "Contacts"], [nLogged, "Logged"], [chats.length, "Upcoming"]].map(([n, l]) => (
             <div key={l} className="text-center min-w-0 px-1">
@@ -60,14 +63,14 @@ export function Dashboard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+      <div className="dashboard-stats grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {stats.map((s) => (
           <Card key={s.label} className="px-4 py-3 flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="label-caps text-fg-3">{s.label}</p>
               <p className="font-serif text-[20px] md:text-[22px] font-semibold mt-0.5 tnum">{s.value}</p>
             </div>
-            <span className="grid place-items-center w-9 h-9 rounded-lg shrink-0 bg-peach text-on-peach"><Icon name={s.icon} className="text-[20px]" /></span>
+            <span className="dashboard-stat-icon grid place-items-center w-9 h-9 rounded-lg shrink-0 bg-peach text-on-peach"><Icon name={s.icon} className="text-[20px]" /></span>
           </Card>
         ))}
       </div>
@@ -206,6 +209,58 @@ function UpNext({ items, hasContacts, onAct, onSeeAll, onEmpty }:
             </div>
           );
         })}
+      </Card>
+    </section>
+  );
+}
+
+// ---------- Phone: quick actions + people to reconnect with ----------
+function QuickActions({ onAdd, onSchedule, onLog }: { onAdd: () => void; onSchedule: () => void; onLog: () => void }) {
+  const items = [
+    { icon: "person_add", label: "Add contact", on: onAdd },
+    { icon: "event_available", label: "Schedule", on: onSchedule },
+    { icon: "edit_note", label: "Log a chat", on: onLog },
+  ];
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {items.map((a) => (
+        <button key={a.label} type="button" onClick={a.on}
+          className="rounded-2xl bg-card border border-line shadow-soft py-3 flex flex-col items-center gap-1.5 text-[12px] font-semibold text-fg-2 active:bg-card-2">
+          <span className="grid place-items-center w-9 h-9 rounded-xl bg-peach text-on-peach"><Icon name={a.icon} className="text-[20px]" /></span>{a.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** People you haven't been in touch with for a while (or ever), longest gap first. */
+function Reconnect({ contacts, events, busyIds, onOpen, onAll }:
+  { contacts: Contact[]; events: ChatEvent[]; busyIds: Set<string>; onOpen: (id: string) => void; onAll: () => void }) {
+  const DAY = 86400000, now = Date.now();
+  const rows = contacts
+    .filter((c) => !busyIds.has(c.id))
+    .map((c) => { const last = lastContactOf(c, events); return { c, last, gap: last ? (now - new Date(last).getTime()) / DAY : Infinity }; })
+    .filter((r) => r.gap >= 21)
+    .sort((a, b) => b.gap - a.gap)
+    .slice(0, 3);
+  if (!rows.length) return null;
+  return (
+    <section aria-labelledby="reconnect" className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between">
+        <h2 id="reconnect" className="label-caps text-brand">Time to reconnect</h2>
+        <button type="button" onClick={onAll} className="text-[13px] font-semibold text-fg-2 hover:text-fg inline-flex items-center gap-0.5">All contacts<Icon name="chevron_right" className="text-[18px]" /></button>
+      </div>
+      <Card className="divide-y divide-line overflow-hidden">
+        {rows.map(({ c, last }) => (
+          <button key={c.id} type="button" onClick={() => onOpen(c.id)} className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 active:bg-card-2">
+            <Avatar name={c.name} size={36} />
+            <span className="flex-1 min-w-0">
+              <span className="block text-[15px] font-semibold leading-tight truncate">{c.name}</span>
+              <span className="block text-[13px] text-fg-2 truncate mt-0.5">{last ? `Last talked ${fromNow(last)}` : "No chat yet"}{c.company ? ` · ${c.company}` : ""}</span>
+            </span>
+            <span className="shrink-0 inline-flex items-center gap-1 text-[13px] font-semibold text-brand">Say hi<Icon name="chevron_right" className="text-[18px]" /></span>
+          </button>
+        ))}
       </Card>
     </section>
   );

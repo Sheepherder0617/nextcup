@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useStore } from "../lib/store";
 import { intent, useNav } from "../lib/nav";
 import { Avatar, Button, Card, Chip, Empty, Icon, Input, Label, Segmented, Select, TextArea, Toggle, cx, useToast } from "../components/ui";
-import { RoleChips } from "../components/bits";
 import { aiAvailable } from "../lib/ai";
 import { addDays, parseLocal, timezoneLabel, todayISO, uid } from "../lib/date";
 import { FORMAT_ICON, FORMAT_LABEL, type ChatEvent, type Format } from "../lib/types";
@@ -128,7 +127,7 @@ export function Schedule({ contactId }: { contactId?: string }) {
               <div className="rounded-xl border border-line bg-card-2 p-4 flex items-center gap-4">
                 <Avatar name={c.name} size={48} />
                 <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-1.5"><span className="text-[18px] font-bold mr-1">{c.name}</span><RoleChips roles={c.roleTypes.slice(0, 2)} school={c.school} /></div>
+                  <div className="text-[18px] font-bold">{c.name}</div>
                   <p className="text-[14px] text-fg-2 truncate">{[c.title, c.company].filter(Boolean).join(" at ")}</p>
                 </div>
                 <Button variant="ghost" icon="swap_horiz" aria-label="Change contact" onClick={() => setPicking(true)} />
@@ -249,10 +248,10 @@ export function Schedule({ contactId }: { contactId?: string }) {
 
       <div className="sticky z-30 -mx-4 md:mx-0 bottom-[calc(72px+env(safe-area-inset-bottom,0px))] md:bottom-4 gutter md:px-5 py-3 bg-header/95 backdrop-blur border-y md:border border-line md:rounded-2xl shadow-lift flex flex-wrap items-center justify-between gap-3">
         <span className="hidden sm:inline-flex items-center gap-2 text-[13px] text-fg-3"><Icon name="verified_user" className="text-[18px]" />Private to you · reminders via your own calendar</span>
-        <div className="flex gap-2 ml-auto">
+        <div className="flex gap-2 ml-auto w-full sm:w-auto">
           <Button variant="secondary" onClick={() => go("calendar")}>Discard</Button>
-          <Button variant="primary" icon="event_available" onClick={submit} disabled={busy || !c || !title.trim() || (eventType === "followup" && !followUpDetails.trim())}>
-            {aiOk && prep && eventType === "coffee" ? "Schedule Event & Activate AI Prep" : "Schedule Event"}
+          <Button variant="primary" icon="event_available" onClick={submit} className="flex-1 sm:flex-none" disabled={busy || !c || !title.trim() || (eventType === "followup" && !followUpDetails.trim())}>
+            {aiOk && prep && eventType === "coffee" ? <><span className="sm:hidden">Schedule + AI Prep</span><span className="hidden sm:inline">Schedule Event & Activate AI Prep</span></> : "Schedule Event"}
           </Button>
         </div>
       </div>

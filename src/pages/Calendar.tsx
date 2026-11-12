@@ -72,6 +72,10 @@ export function CalendarPage() {
         <div className="flex flex-col gap-4 min-w-0">
           <EmailReminders />
 
+          <div className="calendar-mobile-month">
+            <MiniMonth month={month} setMonth={setMonth} events={store.events} selected={day} onPick={(d) => { setDay(d === day ? null : d); setRange("all"); }} />
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
             <div className="w-full sm:w-52">
               <label htmlFor="cal-range" className="sr-only">Which events</label>
@@ -81,7 +85,7 @@ export function CalendarPage() {
                 <option value="all">All events ({counts.all})</option>
               </Select>
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" role="group" aria-label="Filter by type">
+            <div className="calendar-filter-scroll flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" role="group" aria-label="Filter by type">
               {(["all", "coffee", "thankyou", "followup"] as const).map((k) => (
                 <button key={k} type="button" aria-pressed={kind === k} onClick={() => setKind(k)}
                   className={cx("inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-[13px] font-semibold border whitespace-nowrap",
@@ -113,7 +117,7 @@ export function CalendarPage() {
           ))}
         </div>
 
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-24">
+        <aside className="calendar-sidebar flex flex-col gap-4 lg:sticky lg:top-24">
           <MiniMonth month={month} setMonth={setMonth} events={store.events} selected={day} onPick={(d) => { setDay(d === day ? null : d); setRange("all"); }} />
         </aside>
       </div>
@@ -301,23 +305,32 @@ function EmailReminders() {
   const store = useStore();
   const p = store.profile;
   const on = p?.emailReminders ?? true;
+  const [info, setInfo] = useState(false);
   function set(v: boolean) { if (p) store.saveProfile({ ...p, emailReminders: v }); }
   return (
-    <Card className="p-4 flex items-start gap-3 ai-glow">
-      <span className={cx("grid place-items-center w-10 h-10 rounded-xl border shrink-0 transition", on ? "bg-peach text-on-peach border-transparent" : "bg-card text-fg-3 border-line")}>
+    <Card className="px-3.5 py-2.5 md:p-4 flex items-center md:items-start gap-3 ai-glow">
+      <span className={cx("grid place-items-center w-9 h-9 md:w-10 md:h-10 rounded-xl border shrink-0 transition", on ? "bg-peach text-on-peach border-transparent" : "bg-card text-fg-3 border-line")}>
         <Icon name={on ? "notifications_active" : "notifications_off"} />
       </span>
       <div className="flex-1 min-w-0">
-        <p className="font-semibold flex items-center gap-2">Email reminders
+        {/* Phone: tap the title to show what it does */}
+        <button type="button" onClick={() => setInfo(!info)} aria-expanded={info} className="md:hidden font-semibold flex items-center gap-2 text-left">Email reminders
+          <span aria-hidden="true" className={cx("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-bold transition",
+            on ? "bg-blue-soft text-on-blue-soft" : "bg-sunken text-fg-3 border border-line")}>
+            <span className={cx("w-1.5 h-1.5 rounded-full", on ? "bg-blue" : "bg-fg-3")} />{on ? "On" : "Off"}
+          </span>
+          <Icon name="info" className="text-[17px] text-fg-3" />
+        </button>
+        <p className="hidden md:flex font-semibold items-center gap-2">Email reminders
           <span aria-hidden="true" className={cx("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-bold transition",
             on ? "bg-blue-soft text-on-blue-soft" : "bg-sunken text-fg-3 border border-line")}>
             <span className={cx("w-1.5 h-1.5 rounded-full", on ? "bg-blue" : "bg-fg-3")} />{on ? "On" : "Off"}
           </span>
         </p>
-        <p className="text-[14px] text-fg-2">Get an email the day before each coffee chat with your AI prep brief and talking points.</p>
+        <p className={cx("text-[13px] md:text-[14px] text-fg-2 mt-1 md:mt-0 md:block", info ? "block" : "hidden")}>Get an email the day before each coffee chat with your AI prep brief and talking points.</p>
       </div>
       <button type="button" role="switch" aria-checked={on} aria-label="Email reminders" onClick={() => set(!on)}
-        className={cx("relative shrink-0 mt-1 w-12 h-7 rounded-full transition", on ? "bg-ink" : "bg-line-2")}>
+        className={cx("relative shrink-0 md:mt-1 w-12 h-7 rounded-full transition", on ? "bg-ink" : "bg-line-2")}>
         <span className={cx("absolute top-1 left-1 w-5 h-5 rounded-full bg-card shadow-soft transition-transform", on && "translate-x-5")} />
       </button>
     </Card>

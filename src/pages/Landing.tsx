@@ -20,11 +20,6 @@ const PAINS = [
   { icon: "edit_off", text: "Starting every follow-up from a blank message" },
 ];
 
-const STEPS = [
-  { n: "1", title: "Meet", text: "Add someone in seconds after any event or intro." },
-  { n: "2", title: "Remember", text: "Jot rough notes. AI turns them into takeaways." },
-  { n: "3", title: "Reconnect", text: "Get reminded to follow up, with a draft ready." },
-];
 
 // Product tour: one silent screen recording (fictional demo data) with clickable chapters.
 // `at` is where each chapter starts in public/landing/demo.mp4, in seconds.
@@ -38,6 +33,7 @@ const TOUR = [
 const PRIVACY = [
   { img: "privacy-lock", title: "Private by default", text: "Only you can see your contacts and notes." },
   { img: "privacy-ai", title: "AI only when you ask", text: "Your notes are only shared with our AI provider when you press an AI button." },
+  { img: "privacy-export", title: "Export or delete anytime", text: "Download all your data, or erase it in one click from your profile." },
 ];
 
 export function Landing() {
@@ -83,23 +79,23 @@ export function Landing() {
         </div>
       </section>
 
-      {/* ---------- How it works: three steps + product tour ---------- */}
+      {/* ---------- How it works: product tour ---------- */}
       <Tour />
 
       {/* ---------- Privacy ---------- */}
       <section className="gutter">
-        <div className="mx-auto max-w-[1180px] py-14 md:py-20">
-          <div className="flex flex-col items-center text-center gap-3 mb-8 md:mb-12">
+        <div className="mx-auto max-w-[1180px] py-10 md:py-14">
+          <div className="flex flex-col items-center text-center gap-2 mb-6 md:mb-8">
             <SectionLabel>Your data, your network</SectionLabel>
-            <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em]">Your network belongs to you.</h2>
+            <h2 className="font-serif font-medium text-[26px] md:text-[34px] leading-[1.1] tracking-[-0.015em]">Your network belongs to you.</h2>
           </div>
-          <div className="grid gap-4 md:gap-6 md:grid-cols-2 max-w-[820px] mx-auto">
+          <div className="grid gap-3 md:gap-4 md:grid-cols-3 max-w-[1100px] mx-auto">
             {PRIVACY.map((p) => (
-              <div key={p.title} className="rounded-2xl border border-line bg-card-2 p-5 md:p-7 flex md:flex-col items-center md:text-center gap-4">
-                <img src={IMG(p.img)} alt="" loading="lazy" width={360} height={360} className="w-20 h-20 md:w-36 md:h-36 shrink-0" />
-                <div className="flex flex-col gap-1.5 min-w-0">
-                  <h3 className="text-[18px] font-semibold">{p.title}</h3>
-                  <p className="text-fg-2 text-[15px]">{p.text}</p>
+              <div key={p.title} className="rounded-2xl border border-line bg-card-2 p-4 md:p-5 flex items-center gap-4">
+                <img src={IMG(p.img)} alt="" loading="lazy" width={360} height={360} className="w-16 h-16 md:w-20 md:h-20 shrink-0" />
+                <div className="flex flex-col gap-1 min-w-0">
+                  <h3 className="text-[16px] md:text-[17px] font-semibold">{p.title}</h3>
+                  <p className="text-fg-2 text-[14px]">{p.text}</p>
                 </div>
               </div>
             ))}
@@ -108,12 +104,14 @@ export function Landing() {
       </section>
 
       {/* ---------- Final CTA ---------- */}
-      <section className="gutter pb-14 md:pb-20">
-        <div className="mx-auto max-w-[1180px] rounded-3xl bg-ink text-on-ink px-6 py-12 md:px-12 md:py-16 flex flex-col items-center text-center gap-4">
-          <h2 className="font-serif font-medium text-[30px] md:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[24ch]">The next coffee chat could be the start of something big.</h2>
-          <p className="opacity-80 text-[16px] md:text-[18px]">Make sure it isn’t the last one.</p>
+      <section className="gutter pb-10 md:pb-14">
+        <div className="mx-auto max-w-[900px] rounded-3xl bg-ink text-on-ink px-6 py-8 md:px-10 md:py-9 flex flex-col md:flex-row items-center text-center md:text-left gap-4 md:gap-8">
+          <div className="flex-1 flex flex-col gap-1.5">
+            <h2 className="font-serif font-medium text-[24px] md:text-[30px] leading-[1.15] tracking-[-0.01em]">The next coffee chat could be the start of something big.</h2>
+            <p className="opacity-80 text-[15px]">Make sure it isn’t the last one.</p>
+          </div>
           <button type="button" onClick={start}
-            className="mt-2 inline-flex items-center gap-2 h-12 px-7 rounded-full bg-on-ink text-ink font-semibold text-[15px] hover:opacity-90 transition">
+            className="shrink-0 inline-flex items-center gap-2 h-11 px-6 rounded-full bg-on-ink text-ink font-semibold text-[15px] hover:opacity-90 transition">
             {profile ? "Open your workspace" : "Start for free"}<Icon name="arrow_forward" className="text-[18px]" />
           </button>
         </div>
@@ -185,21 +183,10 @@ function Tour() {
   return (
     <section id="how" className="gutter bg-card-2 border-y border-line">
       <div className="mx-auto max-w-[1180px] py-14 md:py-20">
-        <div className="flex flex-col items-center text-center gap-3 mb-6 md:mb-8">
+        <div className="flex flex-col items-center text-center gap-3 mb-8 md:mb-12">
           <SectionLabel>How it works</SectionLabel>
           <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.015em] max-w-[22ch]">Meet once. Stay connected for good.</h2>
         </div>
-        <ol className="grid grid-cols-3 rounded-2xl border border-line bg-card divide-x divide-line mb-8 md:mb-12 max-w-[900px] mx-auto">
-          {STEPS.map((s) => (
-            <li key={s.n} className="p-3 md:p-5 flex flex-col gap-1 md:gap-1.5">
-              <span className="flex items-center gap-1.5 md:gap-2.5">
-                <span className="grid place-items-center shrink-0 w-6 h-6 md:w-8 md:h-8 rounded-full bg-ink text-on-ink font-serif text-[13px] md:text-[16px] font-semibold">{s.n}</span>
-                <span className="text-[14px] md:text-[17px] font-semibold">{s.title}</span>
-              </span>
-              <span className="text-fg-2 text-[12px] md:text-[14px] leading-snug">{s.text}</span>
-            </li>
-          ))}
-        </ol>
         <div className="grid gap-5 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.1fr)] items-start">
           <ol className="order-2 lg:order-1 grid grid-cols-2 lg:grid-cols-1 gap-2.5 lg:gap-3" aria-label="Tour chapters">
             {TOUR.map((c, i) => (

@@ -123,8 +123,8 @@ export function CalendarPage() {
               {range === "past" ? "Log a chat after it happens and it shows up here." : "Schedule an event, or log one that already happened to add it to your calendar."}
             </Empty></Card>
           ) : groups.map(([d, evs]) => (
-            <section key={d} className="flex flex-col gap-3" aria-label={relativeDay(d)}>
-              <h2 className="text-[15px] font-bold text-fg-2 flex items-center gap-2 mt-2">
+            <section key={d} className="flex flex-col gap-2 md:gap-3" aria-label={relativeDay(d)}>
+              <h2 className="text-[14px] md:text-[15px] font-bold text-fg-2 flex items-center gap-2 md:mt-2">
                 {(() => { const r = relativeDay(d); return ["Today", "Tomorrow", "Yesterday"].includes(r) ? `${r} — ${new Intl.DateTimeFormat(undefined, { weekday: "long", month: "short", day: "numeric" }).format(parseLocal(d))}` : r; })()}
                 {evs.some((e) => e.kind === "coffee" && e.status === "planned" && parseLocal(e.start).getTime() - Date.now() < 48 * 3600000 && !store.contactById(e.contactId)?.aiPrep) && <Chip tone="danger">Urgent Prep</Chip>}
               </h2>
@@ -164,42 +164,49 @@ function EventCard({ e, first, onPrep, onLog, onDraft, onDone, onEdit, onDelete,
   { e: ChatEvent; first: boolean; onPrep: () => void; onLog: () => void; onDraft: () => void; onDone: () => void; onEdit: () => void; onDelete: () => void; onOpen: () => void }) {
   const store = useStore();
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [open, setOpen] = useState(false); // phone: details collapsed by default
   const c = store.contactById(e.contactId);
   if (!c) return null;
   const overdue = isOverdue(e);
   const past = e.status === "planned" && e.kind === "coffee" && parseLocal(e.start).getTime() + e.durationMin * 60000 < Date.now();
   return (
-    <Card className={cx("p-4 flex flex-col gap-2.5", e.status === "done" && "opacity-80")}>
-      <div className="flex flex-wrap items-center gap-2">
+    <Card className={cx("px-3.5 py-3 md:p-4 flex flex-col gap-2 md:gap-2.5", e.status === "done" && "opacity-80")}>
+      <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
         <Chip tone={e.kind === "coffee" ? "peach" : e.kind === "thankyou" ? "neutral" : "blue"} icon={KIND_ICON[e.kind]}>{KIND_LABEL[e.kind]}</Chip>
         {first && e.kind === "coffee" && <Chip tone="ink" icon="star">First Meet</Chip>}
         {e.status === "done" && <Chip tone="blue" icon="check">Done</Chip>}
         {overdue && <Chip tone="danger">Overdue</Chip>}
+        {/* Phone: time sits in the chip row */}
+        <span className="md:hidden ml-auto text-[12.5px] font-semibold text-fg-2 tnum">{e.kind === "coffee" ? timeRange(e.start, e.durationMin).split(/\s*[\u2013-]\s*/)[0] : `Due ${fromNow(e.start)}`}</span>
       </div>
-      <div className="flex flex-wrap items-baseline gap-x-2">
-        <button type="button" onClick={onOpen} className="text-[18px] font-bold hover:text-brand">{c.name}</button>
-        {e.title && <span className="text-fg-2">· {e.title}</span>}
-        {(c.title || c.company) && <span className="text-fg-2">• {c.title}{c.title && c.company ? ", " : ""}{c.company}</span>}
+      <div className="flex flex-wrap items-baseline gap-x-2 min-w-0">
+        <button type="button" onClick={onOpen} className="text-[17px] md:text-[18px] font-bold hover:text-brand">{c.name}</button>
+        {e.title && <span className={cx("text-fg-2 text-[14px] md:text-[16px]", !open && "max-md:truncate max-md:max-w-full")}>· {e.title}</span>}
+        {(c.title || c.company) && <span className={cx("text-fg-2", !open && "max-md:hidden")}>• {c.title}{c.title && c.company ? ", " : ""}{c.company}</span>}
       </div>
-      <div className="flex flex-col gap-1 text-[14px] text-fg-2">
+      <div className={cx("flex-col gap-1 text-[14px] text-fg-2 md:flex", open ? "flex" : "hidden")}>
         <span className="inline-flex items-center gap-2 tnum"><Icon name="schedule" className="text-[18px] text-fg-3" />{e.kind === "coffee" ? `${timeRange(e.start, e.durationMin)} (${e.durationMin} mins)` : `Due ${fromNow(e.start)}`}</span>
         {(e.location || e.link) && <span className="inline-flex items-center gap-2 min-w-0"><Icon name={e.format ? FORMAT_ICON[e.format] : "place"} className="text-[18px] text-fg-3" />
           {e.link ? <a href={e.link} target="_blank" rel="noreferrer" className="text-brand font-semibold truncate">{e.location || e.link}</a> : <span className="truncate">{e.location}</span>}</span>}
         {e.topic && <span className="inline-flex items-start gap-2"><Icon name="psychology" className="text-[18px] text-fg-3" />{e.topic}</span>}
       </div>
-      {(c.roleTypes.length > 0 || c.goals.length > 0) && <div className="flex flex-wrap gap-1.5"><RoleChips roles={c.roleTypes.slice(0, 2)} school={c.school} />{c.goals[0] && <Chip tone="neutral">{GOAL_LABEL[c.goals[0]]}</Chip>}</div>}
-      <div className="flex flex-wrap gap-2 pt-3 border-t border-line">
+      {(c.roleTypes.length > 0 || c.goals.length > 0) && <div className={cx("flex-wrap gap-1.5 md:flex", open ? "flex" : "hidden")}><RoleChips roles={c.roleTypes.slice(0, 2)} school={c.school} />{c.goals[0] && <Chip tone="neutral">{GOAL_LABEL[c.goals[0]]}</Chip>}</div>}
+      <div className={cx("flex flex-wrap items-center gap-2 md:pt-3 md:border-t md:border-line", open && "max-md:pt-2 max-md:border-t max-md:border-line")}>
         {e.kind === "coffee" && e.status === "planned" && <>
-          {!past && <Button size="sm" variant="ai" icon="psychology" onClick={onPrep}>Coffee Chat AI Prep</Button>}
-          <Button size="sm" variant={past ? "primary" : "secondary"} icon="edit_note" onClick={onLog}>Log a Chat</Button>
-          {!past && <Button size="sm" variant="ghost" icon="event" onClick={() => saveFile(`coffee-chat-${c.name.split(" ")[0].toLowerCase()}.ics`, eventToIcs(e, c), "text/calendar")}>.ics</Button>}
+          {!past && <Button size="sm" variant="ai" icon="psychology" onClick={onPrep}><span className="md:hidden">AI Prep</span><span className="hidden md:inline">Coffee Chat AI Prep</span></Button>}
+          <span className={cx(!past && !open && "max-md:hidden")}><Button size="sm" variant={past ? "primary" : "secondary"} icon="edit_note" onClick={onLog}>Log a Chat</Button></span>
+          {!past && <Button size="sm" variant="ghost" icon="event" className={cx(!open && "max-md:!hidden")} onClick={() => saveFile(`coffee-chat-${c.name.split(" ")[0].toLowerCase()}.ics`, eventToIcs(e, c), "text/calendar")}>.ics</Button>}
         </>}
         {e.kind !== "coffee" && e.status === "planned" && <>
           <Button size="sm" variant="secondary" icon={e.kind === "thankyou" ? "mark_email_read" : "lightbulb"} onClick={onDraft}>{e.kind === "thankyou" ? "Write thank-you" : "Write follow-up"}</Button>
-          <Button size="sm" variant="ghost" icon="check" onClick={onDone}>Mark done</Button>
+          <span className={cx(!open && "max-md:hidden")}><Button size="sm" variant="ghost" icon="check" onClick={onDone}>Mark done</Button></span>
         </>}
         {e.status === "done" && <Button size="sm" variant="ghost" icon="description" onClick={onOpen}>View in profile</Button>}
-        <div className="relative ml-auto">
+        <button type="button" onClick={() => setOpen(!open)} aria-expanded={open}
+          className="md:hidden ml-auto inline-flex items-center gap-0.5 h-8 px-2 rounded-full text-[12.5px] font-semibold text-fg-3">
+          {open ? "Less" : "Details"}<Icon name={open ? "expand_less" : "expand_more"} className="text-[18px]" />
+        </button>
+        <div className="relative md:ml-auto">
           <Button size="sm" variant="ghost" icon="more_vert" onClick={() => setActionsOpen((open) => !open)} className="text-fg-3"
             aria-label="Event actions" aria-haspopup="menu" aria-expanded={actionsOpen} title="Event actions" />
           {actionsOpen && <div role="menu" className="absolute right-0 bottom-full z-20 mb-1 min-w-44 rounded-lg border border-line bg-card p-1 shadow-lift">

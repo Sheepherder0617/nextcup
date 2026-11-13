@@ -65,12 +65,18 @@ export function CalendarPage() {
           <h1 className="font-serif text-[28px] md:text-[34px] font-semibold leading-tight">NextCup Calendar</h1>
           <p className="text-fg-2 text-[15px] max-w-[60ch]">Every coffee chat, thank-you note and follow-up in one timeline.</p>
         </div>
-        <Button variant="primary" icon="add_circle" onClick={() => go("schedule")} className="self-start md:self-auto">Schedule Event</Button>
+        <span className="hidden md:block"><Button variant="primary" icon="add_circle" onClick={() => go("schedule")}>Schedule Event</Button></span>
+      </div>
+
+      {/* Phone: schedule button and email reminders share one row */}
+      <div className="md:hidden flex items-stretch gap-2">
+        <Button variant="primary" icon="add_circle" onClick={() => go("schedule")} className="shrink-0 !h-auto min-h-11 !px-3.5">Schedule</Button>
+        <EmailReminders compact />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] items-start">
         <div className="flex flex-col gap-4 min-w-0">
-          <EmailReminders />
+          <div className="hidden md:block"><EmailReminders /></div>
 
           <div className="calendar-mobile-month">
             <PhoneCalendar month={month} setMonth={setMonth} events={store.events} selected={day} onPick={(d) => { setDay(d === day ? null : d); setRange("all"); }} />
@@ -276,7 +282,7 @@ function PhoneCalendar({ month, setMonth, events, selected, onPick }: { month: D
   return (
     <Card className="px-2.5 pt-2.5 pb-2">
       <div className="flex items-center justify-between px-1 mb-1.5">
-        <h2 className="font-serif text-[18px] font-semibold">{formatMonth(weekStart)}</h2>
+        <h2 className="font-serif text-[17px] min-[380px]:text-[18px] font-semibold whitespace-nowrap">{formatMonth(weekStart)}</h2>
         <div className="flex items-center gap-0.5">
           <Button size="sm" variant="ghost" icon="chevron_left" aria-label="Previous week" onClick={() => shift(-7)} />
           <Button size="sm" variant="ghost" icon="chevron_right" aria-label="Next week" onClick={() => shift(7)} />
@@ -356,12 +362,28 @@ function MiniMonth({ month, setMonth, events, selected, onPick, compact }: { mon
 }
 
 /** Email reminder setting. Saved on the profile; sending is not built yet, so this only stores the choice. */
-function EmailReminders() {
+function EmailReminders({ compact }: { compact?: boolean }) {
   const store = useStore();
   const p = store.profile;
   const on = p?.emailReminders ?? true;
   const [info, setInfo] = useState(false);
   function set(v: boolean) { if (p) store.saveProfile({ ...p, emailReminders: v }); }
+  const sw = (
+    <button type="button" role="switch" aria-checked={on} aria-label="Email reminders" onClick={() => set(!on)}
+      className={cx("relative shrink-0 w-12 h-7 rounded-full transition", on ? "bg-ink" : "bg-line-2")}>
+      <span className={cx("absolute top-1 left-1 w-5 h-5 rounded-full bg-card shadow-soft transition-transform", on && "translate-x-5")} />
+    </button>
+  );
+  if (compact) return (
+    <Card className="flex-1 min-w-0 px-3 py-2 flex items-center gap-2 ai-glow">
+      <Icon name={on ? "notifications_active" : "notifications_off"} className={cx("max-[379px]:hidden text-[20px] shrink-0", on ? "text-brand" : "text-fg-3")} />
+      <span className="flex-1 min-w-0 leading-tight">
+        <span className="block text-[13.5px] font-semibold truncate">Email reminders</span>
+        <span className="block text-[11.5px] text-fg-3 truncate">{on ? "Day before each chat" : "Off"}</span>
+      </span>
+      {sw}
+    </Card>
+  );
   return (
     <Card className="px-3.5 py-2.5 md:p-4 flex items-center md:items-start gap-3 ai-glow">
       <span className={cx("grid place-items-center w-9 h-9 md:w-10 md:h-10 rounded-xl border shrink-0 transition", on ? "bg-peach text-on-peach border-transparent" : "bg-card text-fg-3 border-line")}>

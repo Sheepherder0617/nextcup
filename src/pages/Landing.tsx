@@ -9,8 +9,8 @@ const IMG = (name: string) => `/landing/${name}.webp`;
 
 // Hero story, in three acts that loop: meet again → blank on details → one tap brings it back.
 const ACTS = [
-  { label: "Hi again!", ms: 3200 },
-  { label: "Oops…", ms: 3600 },
+  { label: "Hi again!", ms: 2200 },
+  { label: "Oops…", ms: 2800 },
   { label: "Oh right!", ms: 6000 },
 ] as const;
 

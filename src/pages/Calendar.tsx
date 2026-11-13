@@ -60,18 +60,20 @@ export function CalendarPage() {
 
   return (
     <div className="flex flex-col gap-4 md:gap-5 rise">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      {/* Phone: title, reminders and schedule on one row */}
+      <div className="md:hidden flex items-center gap-2">
+        <h1 className="flex-1 min-w-0 font-serif text-[28px] font-semibold leading-tight">Calendar</h1>
+        <EmailReminders compact />
+        <button type="button" onClick={() => go("schedule")} className="shrink-0 inline-flex items-center gap-1 h-10 pl-3 pr-3.5 rounded-full bg-ink text-on-ink text-[14px] font-semibold shadow-soft">
+          <Icon name="add" className="text-[20px]" />Schedule
+        </button>
+      </div>
+      <div className="hidden md:flex flex-row items-end justify-between gap-4">
         <div>
-          <h1 className="font-serif text-[28px] md:text-[34px] font-semibold leading-tight">NextCup Calendar</h1>
+          <h1 className="font-serif text-[34px] font-semibold leading-tight">NextCup Calendar</h1>
           <p className="text-fg-2 text-[15px] max-w-[60ch]">Every coffee chat, thank-you note and follow-up in one timeline.</p>
         </div>
-        <span className="hidden md:block"><Button variant="primary" icon="add_circle" onClick={() => go("schedule")}>Schedule Event</Button></span>
-      </div>
-
-      {/* Phone: schedule button and email reminders share one row */}
-      <div className="md:hidden flex items-stretch gap-2">
-        <Button variant="primary" icon="add_circle" onClick={() => go("schedule")} className="shrink-0 !h-auto min-h-11 !px-3.5">Schedule</Button>
-        <EmailReminders compact />
+        <Button variant="primary" icon="add_circle" onClick={() => go("schedule")}>Schedule Event</Button>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] items-start">
@@ -83,7 +85,7 @@ export function CalendarPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-            <div className="w-full sm:w-52">
+            <div className="hidden md:block w-full sm:w-52">
               <label htmlFor="cal-range" className="sr-only">Which events</label>
               <Select id="cal-range" value={range} onChange={(e) => { setRange(e.target.value as Range); setDay(null); }}>
                 <option value="upcoming">Upcoming ({counts.upcoming})</option>
@@ -91,13 +93,23 @@ export function CalendarPage() {
                 <option value="all">All events ({counts.all})</option>
               </Select>
             </div>
-            <div className="calendar-filter-scroll flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" role="group" aria-label="Filter by type">
+            <div className="calendar-filter-scroll flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filter by type">
+              {/* Phone: upcoming / past toggle replaces the dropdown */}
+              <span className="md:hidden shrink-0 inline-flex h-9 p-0.5 rounded-full bg-sunken border border-line">
+                {(["upcoming", "past"] as const).map((r) => (
+                  <button key={r} type="button" aria-pressed={range === r} onClick={() => { setRange(r); setDay(null); }}
+                    className={cx("px-3 rounded-full text-[13px] font-semibold whitespace-nowrap transition", range === r ? "bg-card text-fg shadow-soft" : "text-fg-3")}>
+                    {r === "upcoming" ? "Upcoming" : "Past"}
+                  </button>
+                ))}
+              </span>
+              <span aria-hidden="true" className="md:hidden shrink-0 w-px my-1.5 bg-line-2" />
               {(["all", "coffee", "thankyou", "followup"] as const).map((k) => (
                 <button key={k} type="button" aria-pressed={kind === k} onClick={() => setKind(k)}
                   className={cx("inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-[13px] font-semibold border whitespace-nowrap",
                     kind === k ? "bg-ink text-on-ink border-transparent" : "bg-card border-line text-fg-2 hover:bg-card-2")}>
                   {k !== "all" && <Icon name={KIND_ICON[k]} className="text-[16px]" />}
-                  {k === "all" ? "All types" : KIND_LABEL[k]}
+                  {k === "all" ? <><span className="md:hidden">All</span><span className="hidden md:inline">All types</span></> : KIND_LABEL[k]}
                   <span className="tnum opacity-70">{k === "all" ? counts[range] : kindCount(k)}</span>
                 </button>
               ))}
@@ -368,21 +380,14 @@ function EmailReminders({ compact }: { compact?: boolean }) {
   const on = p?.emailReminders ?? true;
   const [info, setInfo] = useState(false);
   function set(v: boolean) { if (p) store.saveProfile({ ...p, emailReminders: v }); }
-  const sw = (
-    <button type="button" role="switch" aria-checked={on} aria-label="Email reminders" onClick={() => set(!on)}
-      className={cx("relative shrink-0 w-12 h-7 rounded-full transition", on ? "bg-ink" : "bg-line-2")}>
-      <span className={cx("absolute top-1 left-1 w-5 h-5 rounded-full bg-card shadow-soft transition-transform", on && "translate-x-5")} />
-    </button>
-  );
+  const toast = useToast();
   if (compact) return (
-    <Card className="flex-1 min-w-0 px-3 py-2 flex items-center gap-2 ai-glow">
-      <Icon name={on ? "notifications_active" : "notifications_off"} className={cx("max-[379px]:hidden text-[20px] shrink-0", on ? "text-brand" : "text-fg-3")} />
-      <span className="flex-1 min-w-0 leading-tight">
-        <span className="block text-[13.5px] font-semibold truncate">Email reminders</span>
-        <span className="block text-[11.5px] text-fg-3 truncate">{on ? "Day before each chat" : "Off"}</span>
-      </span>
-      {sw}
-    </Card>
+    <button type="button" role="switch" aria-checked={on} aria-label="Email reminders the day before each chat"
+      onClick={() => { set(!on); toast(!on ? "Email reminders on: you’ll get an email the day before each coffee chat." : "Email reminders off"); }}
+      className={cx("shrink-0 inline-flex items-center gap-1 h-10 px-3 rounded-full border text-[13px] font-semibold transition",
+        on ? "bg-peach text-on-peach border-transparent" : "bg-card text-fg-3 border-line")}>
+      <Icon name={on ? "notifications_active" : "notifications_off"} className="text-[19px]" />{on ? "On" : "Off"}
+    </button>
   );
   return (
     <Card className="px-3.5 py-2.5 md:p-4 flex items-center md:items-start gap-3 ai-glow">
